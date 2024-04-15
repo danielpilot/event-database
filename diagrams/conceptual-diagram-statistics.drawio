@@ -1,4 +1,4 @@
-<mxfile host="app.diagrams.net" modified="2024-04-15T14:06:17.720Z" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:124.0) Gecko/20100101 Firefox/124.0" etag="wQkb8n8xmZTiQNh-QlRV" version="24.2.3" type="github">
+<mxfile host="app.diagrams.net" modified="2024-04-15T19:19:45.379Z" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:124.0) Gecko/20100101 Firefox/124.0" etag="Kn990gtA8UgsoeIi1pI0" version="24.2.3" type="github">
   <diagram name="Página-1" id="GyDcyAgr15_voH2KFKZd">
     <mxGraphModel dx="2074" dy="1142" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
@@ -170,7 +170,7 @@
         <mxCell id="F1hBgyZRCNYkHsS2Qec8-75" value="6 - Soldout event percentage" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rounded=0;shadow=0;html=0;" parent="F1hBgyZRCNYkHsS2Qec8-70" vertex="1">
           <mxGeometry y="162" width="276" height="24" as="geometry" />
         </mxCell>
-        <mxCell id="F1hBgyZRCNYkHsS2Qec8-77" value="6 - Paid events percentage" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rounded=0;shadow=0;html=0;" parent="F1hBgyZRCNYkHsS2Qec8-70" vertex="1">
+        <mxCell id="F1hBgyZRCNYkHsS2Qec8-77" value="7 - Paid events percentage" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rounded=0;shadow=0;html=0;" parent="F1hBgyZRCNYkHsS2Qec8-70" vertex="1">
           <mxGeometry y="186" width="276" height="24" as="geometry" />
         </mxCell>
         <mxCell id="F1hBgyZRCNYkHsS2Qec8-78" value="&lt;&lt;enumeration&gt;&gt;&#xa;SystemCounters&#xa;" style="swimlane;fontStyle=0;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=40;horizontalStack=0;resizeParent=1;resizeLast=0;collapsible=1;marginBottom=0;rounded=0;shadow=0;strokeWidth=1;" parent="1" vertex="1">
