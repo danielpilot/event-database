@@ -1,14 +1,15 @@
 services:
     db:
-        image: postgres
+        build: './docker/postgres'
         environment:
-            POSTGRES_USER: event_user
-            POSTGRES_PASSWORD: event_password
-            POSTGRES_DB: event_database
+            POSTGRES_PASSWORD: root_event_password
         volumes:
             - pgdata:/var/lib/postgresql/data
+            - pgtablespaces:/var/lib/pg_tablespaces
+            - ./init_scripts:/docker-entrypoint-initdb.d
         ports:
             - 5432:5432
 
 volumes:
     pgdata:
+    pgtablespaces:
