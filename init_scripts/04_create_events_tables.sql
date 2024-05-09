@@ -121,3 +121,46 @@ CREATE TABLE Event_Change (
     PRIMARY KEY (id, event_id),
     FOREIGN KEY (event_id) REFERENCES Event(id)
 );
+
+-- Create user table
+CREATE TABLE "user" (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    surname VARCHAR(255) NOT NULL,
+    email VARCHAR(255) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL,
+    roles VARCHAR(255) NOT NULL
+);
+
+-- Create user event favorite table
+CREATE TABLE Event_Favorite (
+    event_id INTEGER NOT NULL,
+    user_id INTEGER NOT NULL,
+    PRIMARY KEY (event_id, user_id),
+    FOREIGN KEY (event_id) REFERENCES Event(id),
+    FOREIGN KEY (user_id) REFERENCES "user"(id)
+);
+
+-- Create rating table
+CREATE TABLE Rating (
+    event_id INTEGER NOT NULL,
+    user_id INTEGER NOT NULL,
+    punctuation SMALLINT NOT NULL,
+    comment TEXT NOT NULL,
+    published BOOLEAN NOT NULL,
+    PRIMARY KEY (event_id, user_id),
+    FOREIGN KEY (event_id) REFERENCES Event(id),
+    FOREIGN KEY (user_id) REFERENCES "user"(id)
+);
+
+-- Create transaction table
+CREATE TABLE Transaction (
+    event_id INTEGER NOT NULL,
+    user_id INTEGER NOT NULL,
+    unit_price REAL NOT NULL,
+    quantity SMALLINT NOT NULL,
+    reference VARCHAR(5) NOT NULL UNIQUE,
+    PRIMARY KEY (event_id, user_id),
+    FOREIGN KEY (event_id) REFERENCES Event(id),
+    FOREIGN KEY (user_id) REFERENCES "user"(id)
+);
