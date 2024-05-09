@@ -53,3 +53,42 @@ CREATE TABLE Category (
     parent_category INTEGER,
     FOREIGN KEY (parent_category) REFERENCES Category(id)
 );
+
+-- Create organizer table
+CREATE TABLE Organizer (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    email VARCHAR(255) NOT NULL UNIQUE,
+    type VARCHAR(20) NOT NULL CHECK (type IN ('Company', 'Association', 'Foundation'))
+);
+
+-- Create organizer contact table
+CREATE TABLE Organizer_Contact (
+    name VARCHAR(255) NOT NULL,
+    organizer_id INTEGER NOT NULL,
+    email VARCHAR(255) NOT NULL UNIQUE,
+    telephone VARCHAR(20),
+    PRIMARY KEY (name, organizer_id),
+    FOREIGN KEY (organizer_id) REFERENCES Organizer(id)
+);
+
+-- Create event table
+CREATE TABLE Event (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    start_date TIMESTAMP NOT NULL,
+    end_date TIMESTAMP NOT NULL,
+    schedule VARCHAR(255) NOT NULL,
+    description TEXT NOT NULL,
+    price REAL NOT NULL,
+    image VARCHAR(255),
+    event_status BOOLEAN NOT NULL,
+    event_published BOOLEAN NOT NULL,
+    comments BOOLEAN NOT NULL,
+    organizer_id INTEGER NOT NULL,
+    location_id INTEGER NOT NULL,
+    FOREIGN KEY (organizer_id) REFERENCES Organizer(id),
+    FOREIGN KEY (location_id) REFERENCES Location(id)
+);
+
+CREATE INDEX idx_start_end_published ON Event(start_date, end_date, event_published);
