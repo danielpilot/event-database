@@ -164,3 +164,11 @@ CREATE TABLE Transaction (
     FOREIGN KEY (event_id) REFERENCES Event(id),
     FOREIGN KEY (user_id) REFERENCES "user"(id)
 );
+
+-- Create log table
+CREATE TABLE Log (
+    id SERIAL PRIMARY KEY,
+    date TIMESTAMP NOT NULL,
+    entry_parameters VARCHAR(255) NOT NULL,
+    result VARCHAR(255) NOT NULL
+);
