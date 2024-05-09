@@ -120,4 +120,4 @@ CREATE TABLE Event_Change (
     description TEXT NOT NULL,
     PRIMARY KEY (id, event_id),
     FOREIGN KEY (event_id) REFERENCES Event(id)
-)
+);
