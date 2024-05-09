@@ -92,3 +92,32 @@ CREATE TABLE Event (
 );
 
 CREATE INDEX idx_start_end_published ON Event(start_date, end_date, event_published);
+
+-- Create event with sales function
+CREATE TABLE Event_With_Sales (
+    id SERIAL PRIMARY KEY,
+    event_id INTEGER NOT NULL,
+    capacity SMALLINT NOT NULL,
+    maximum_per_sale SMALLINT NOT NULL,
+    FOREIGN KEY (event_id) REFERENCES event(id)
+);
+
+-- Create event category relation table
+CREATE TABLE Event_Has_Category (
+    event_id INTEGER NOT NULL,
+    category_id INTEGER NOT NULL,
+    PRIMARY KEY (event_id, category_id),
+    FOREIGN KEY (event_id) REFERENCES Event(id),
+    FOREIGN KEY (category_id) REFERENCES Category(id)
+);
+
+-- Create event change table
+CREATE TABLE Event_Change (
+    id SERIAL NOT NULL,
+    event_id INTEGER NOT NULL,
+    type VARCHAR(30) NOT NULL CHECK ( type IN ('Delayed', 'Cancelled', 'Location Change', 'Price Change', 'Other') ),
+    date TIMESTAMP NOT NULL,
+    description TEXT NOT NULL,
+    PRIMARY KEY (id, event_id),
+    FOREIGN KEY (event_id) REFERENCES Event(id)
+)
