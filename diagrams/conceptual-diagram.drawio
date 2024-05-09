@@ -1,4 +1,4 @@
-<mxfile host="app.diagrams.net" modified="2024-04-15T14:12:57.977Z" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:124.0) Gecko/20100101 Firefox/124.0" etag="J-Z8YoQkIsl-kK20sf7A" version="24.2.3" type="github">
+<mxfile host="app.diagrams.net" modified="2024-05-09T15:45:08.568Z" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:125.0) Gecko/20100101 Firefox/125.0" etag="fiojDMsB-eq91mn4uUms" version="24.3.1" type="github">
   <diagram id="C5RBs43oDa-KdzZeNtuy" name="Page-1">
     <mxGraphModel dx="2901" dy="2311" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
@@ -57,10 +57,10 @@
         <mxCell id="vae-MlumOARrrWWdp-dJ-8" value="+ name: String" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rounded=0;shadow=0;html=0;" parent="vae-MlumOARrrWWdp-dJ-6" vertex="1">
           <mxGeometry y="52" width="160" height="26" as="geometry" />
         </mxCell>
-        <mxCell id="vae-MlumOARrrWWdp-dJ-9" value="+ start: Date" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rounded=0;shadow=0;html=0;" parent="vae-MlumOARrrWWdp-dJ-6" vertex="1">
+        <mxCell id="vae-MlumOARrrWWdp-dJ-9" value="+ startDate: Date" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rounded=0;shadow=0;html=0;" parent="vae-MlumOARrrWWdp-dJ-6" vertex="1">
           <mxGeometry y="78" width="160" height="26" as="geometry" />
         </mxCell>
-        <mxCell id="vae-MlumOARrrWWdp-dJ-10" value="+ end: Date" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rounded=0;shadow=0;html=0;" parent="vae-MlumOARrrWWdp-dJ-6" vertex="1">
+        <mxCell id="vae-MlumOARrrWWdp-dJ-10" value="+ endDate: Date" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rounded=0;shadow=0;html=0;" parent="vae-MlumOARrrWWdp-dJ-6" vertex="1">
           <mxGeometry y="104" width="160" height="26" as="geometry" />
         </mxCell>
         <mxCell id="vae-MlumOARrrWWdp-dJ-11" value="+ schedule: String" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rounded=0;shadow=0;html=0;" parent="vae-MlumOARrrWWdp-dJ-6" vertex="1">
