@@ -97,7 +97,7 @@ AS
             SELECT EXISTS (SELECT 1 FROM events.location WHERE id = _location_id) INTO _location_exists;
 
             IF NOT _location_exists THEN
-                RAISE EXCEPTION 'Location %s does not exist', _location_id;
+                RAISE EXCEPTION 'Location % does not exist', _location_id;
             END IF;
 
             SELECT EXISTS (SELECT 1 FROM events.city WHERE id = _city_id) INTO _city_exists;
@@ -108,7 +108,7 @@ AS
 
             UPDATE events.location
             SET name = _name, city_id = _city_id, address = _address, latitude = _latitude, longitude = _longitude
-            WHERE id = _procedure_id;
+            WHERE id = _location_id;
 
             _result := 'OK';
 
