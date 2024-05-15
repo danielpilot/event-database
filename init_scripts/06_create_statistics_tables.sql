@@ -1,4 +1,4 @@
-\c statistics_database;
+\c event_database;
 
 -- Create city statistics table
 CREATE TABLE statistics.City_Statistics (
