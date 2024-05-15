@@ -124,14 +124,14 @@ BEGIN
             RAISE EXCEPTION 'Procedure delete_organizer is not registered in the procedures table';
         END IF;
 
-        DELETE FROM events.organizer WHERE id = _organizer_id;
-
         IF NOT FOUND THEN
             RAISE EXCEPTION 'Organizer % does not exist', _organizer_id;
         END IF;
 
         _result := 'OK';
     EXCEPTION
+        WHEN foreign_key_violation THEN
+            _result := format('Organizer %s has related events', _organizer_id);
         WHEN raise_exception THEN
             _result := format('ERROR: %s', SQLERRM);
     END;
