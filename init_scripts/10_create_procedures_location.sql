@@ -17,7 +17,7 @@ DECLARE
 BEGIN
     _entry_parameters :=
             format(
-                    'Name: %s|Address: %s|CityID: %s|Latitude: %s|Longitude: %s',
+                    'Name: %s | Address: %s | City ID: %s | Latitude: %s | Longitude: %s',
                     _name,
                     _address,
                     _city_id,
@@ -68,7 +68,7 @@ DECLARE
 BEGIN
     _entry_parameters :=
             format(
-                    'ID: %s|Name: %s|Address: %s|CityID: %s|Latitude: %s|Longitude: %s',
+                    'ID: %s | Name: %s | Address: %s | City ID: %s | Latitude: %s | Longitude: %s',
                     _location_id,
                     _name,
                     _address,
@@ -121,7 +121,7 @@ $$ LANGUAGE plpgsql;
 
 -- Delete location
 CREATE FUNCTION events.delete_location(
-    _location_id events.location.id%type
+    _id events.location.id%type
 ) RETURNS TEXT
 AS
 $$
@@ -130,7 +130,7 @@ DECLARE
     _procedure_id     INTEGER;
     _result           TEXT;
 BEGIN
-    _entry_parameters := format('ID: %s', _location_id);
+    _entry_parameters := format('ID: %s', _id);
 
     SELECT id INTO _procedure_id FROM logs.Procedures WHERE name = 'delete_location';
 
@@ -139,15 +139,15 @@ BEGIN
             RAISE EXCEPTION 'Procedure delete_location is not registered in the procedures table';
         END IF;
 
-        DELETE FROM events.location WHERE id = _location_id;
+        DELETE FROM events.location WHERE id = _id;
         IF NOT FOUND THEN
-            RAISE EXCEPTION 'Location "%" does not exist', _location_id;
+            RAISE EXCEPTION 'Location "%" does not exist', _id;
         END IF;
 
         _result := 'OK';
     EXCEPTION
         WHEN foreign_key_violation THEN
-            _result := format('Location "%s" has related events', _location_id);
+            _result := format('Location "%s" has related events', _id);
         WHEN raise_exception THEN
             _result := format('ERROR: %s', SQLERRM);
     END;

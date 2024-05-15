@@ -136,8 +136,8 @@ CREATE TABLE events.Event_Favorite (
     event_id INTEGER NOT NULL,
     user_id INTEGER NOT NULL,
     PRIMARY KEY (event_id, user_id),
-    FOREIGN KEY (event_id) REFERENCES events.Event(id),
-    FOREIGN KEY (user_id) REFERENCES events.User(id)
+    FOREIGN KEY (event_id) REFERENCES events.Event(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES events.User(id) ON DELETE CASCADE
 ) TABLESPACE operational_tablespace;
 
 -- Create rating table
@@ -148,8 +148,8 @@ CREATE TABLE events.Rating (
     comment TEXT NOT NULL,
     published BOOLEAN NOT NULL,
     PRIMARY KEY (event_id, user_id),
-    FOREIGN KEY (event_id) REFERENCES events.Event(id),
-    FOREIGN KEY (user_id) REFERENCES events.User(id)
+    FOREIGN KEY (event_id) REFERENCES events.Event(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES events.User(id) ON DELETE CASCADE
 ) TABLESPACE operational_tablespace;
 
 CREATE TABLE events.Transaction (

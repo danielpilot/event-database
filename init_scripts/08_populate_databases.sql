@@ -36,4 +36,7 @@ INSERT INTO logs.Procedures (name, description) VALUES ('create_location', 'Crea
                                                        ('delete_organizer_contact', 'Delete an organizer contact'),
                                                        ('create_category', 'Creates a new category'),
                                                        ('update_category', 'Updates a category'),
-                                                       ('delete_category', 'Delete a category');
+                                                       ('delete_category', 'Delete a category'),
+                                                       ('create_user', 'Creates a new user'),
+                                                       ('update_user', 'Updates a user'),
+                                                       ('delete_user', 'Delete a user');

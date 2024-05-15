@@ -15,7 +15,7 @@ DECLARE
 BEGIN
     _entry_parameters :=
             format(
-                    'Name: %s|Email: %s|Type: %s',
+                    'Name: %s | Email: %s | Type: %s',
                     _name,
                     _email,
                     _type
@@ -64,7 +64,7 @@ DECLARE
 BEGIN
     _entry_parameters :=
             format(
-                    'ID: %s, Name: %s|Email: %s|Type: %s',
+                    'ID: %s, Name: %s | Email: %s | Type: %s',
                     _organizer_id,
                     _name,
                     _email,
@@ -106,7 +106,7 @@ $$ LANGUAGE plpgsql;
 
 -- Delete organizer
 CREATE FUNCTION events.delete_organizer(
-    _organizer_id events.organizer.id%type
+    _id events.organizer.id%type
 ) RETURNS TEXT
 AS
 $$
@@ -115,7 +115,7 @@ DECLARE
     _procedure_id     INTEGER;
     _result           TEXT;
 BEGIN
-    _entry_parameters := format('ID: %s', _organizer_id);
+    _entry_parameters := format('ID: %s', _id);
 
     BEGIN
         SELECT id INTO _procedure_id FROM logs.Procedures WHERE name = 'delete_organizer';
@@ -125,13 +125,13 @@ BEGIN
         END IF;
 
         IF NOT FOUND THEN
-            RAISE EXCEPTION 'Organizer "%" does not exist', _organizer_id;
+            RAISE EXCEPTION 'Organizer "%" does not exist', _id;
         END IF;
 
         _result := 'OK';
     EXCEPTION
         WHEN foreign_key_violation THEN
-            _result := format('Organizer "%s" has related events', _organizer_id);
+            _result := format('Organizer "%s" has related events', _id);
         WHEN raise_exception THEN
             _result := format('ERROR: %s', SQLERRM);
     END;

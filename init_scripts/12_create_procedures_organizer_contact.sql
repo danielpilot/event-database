@@ -16,7 +16,7 @@ DECLARE
 BEGIN
     _entry_parameters :=
             format(
-                    'Organizer ID: %s|Name: %s|Email: %s|Telephone: %s',
+                    'Organizer ID: %s | Name: %s | Email: %s | Telephone: %s',
                     _organizer_id,
                     _name,
                     _email,
@@ -64,7 +64,7 @@ DECLARE
 BEGIN
     _entry_parameters :=
             format(
-                    'Organizer ID: %s|Name: %s|Email: %s|Telephone: %s',
+                    'Organizer ID: %s | Name: %s | Email: %s | Telephone: %s',
                     _organizer_id,
                     _name,
                     _email,
@@ -105,7 +105,7 @@ $$ LANGUAGE plpgsql;
 
 -- Delete organizer contact
 CREATE FUNCTION events.delete_organizer_contact(
-    _organizer_id events.organizer_contact.organizer_id%type,
+    _id events.organizer_contact.organizer_id%type,
     _name events.organizer_contact.name%type
 ) RETURNS TEXT
 AS
@@ -117,8 +117,8 @@ DECLARE
 BEGIN
     _entry_parameters :=
             format(
-                    'Organizer ID: %s|Name: %s',
-                    _organizer_id,
+                    'ID: %s | Name: %s',
+                    _id,
                     _name
             );
 
@@ -132,10 +132,10 @@ BEGIN
         DELETE
         FROM events.organizer_contact
         WHERE name = _name
-          AND organizer_id = _organizer_id;
+          AND organizer_id = _id;
 
         IF NOT FOUND THEN
-            RAISE EXCEPTION 'Organizer contact does not exist';
+            RAISE EXCEPTION 'Organizer contact "%" does not exist', _id;
         END IF;
 
         _result := 'OK';

@@ -11,7 +11,7 @@ DECLARE
     _procedure_id     INTEGER;
     _result           TEXT;
 BEGIN
-    _entry_parameters := format('Name: %s|Parent Category ID: %s', _name, _parent_category_id);
+    _entry_parameters := format('Name: %s | Parent Category ID: %s', _name, _parent_category_id);
 
     BEGIN
         SELECT id INTO _procedure_id FROM logs.Procedures WHERE name = 'create_category';
@@ -58,7 +58,7 @@ DECLARE
     _procedure_id     INTEGER;
     _result           TEXT;
 BEGIN
-    _entry_parameters := format('ID: %s|Name: %s|Parent Category ID: %s', _id, _name, _parent_category_id);
+    _entry_parameters := format('ID: %s | Name: %s | Parent Category ID: %s', _id, _name, _parent_category_id);
 
     BEGIN
         SELECT id INTO _procedure_id FROM logs.Procedures WHERE name = 'update_category';
@@ -119,7 +119,7 @@ BEGIN
         WHERE id = _id;
 
         IF NOT FOUND THEN
-            RAISE EXCEPTION 'Category does not exist';
+            RAISE EXCEPTION 'Category with ID "%" does not exist', _id;
         END IF;
 
         _result := 'OK';
