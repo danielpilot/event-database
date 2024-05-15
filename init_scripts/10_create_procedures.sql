@@ -1,7 +1,7 @@
 \c event_database;
 
 -- Create location
-CREATE OR REPLACE FUNCTION events.create_location(
+CREATE FUNCTION events.create_location(
     _name events.location.name%type,
     _address events.location.address%type,
     _city_id events.location.city_id%type,
@@ -27,6 +27,10 @@ AS
                     );
 
             SELECT id INTO _procedure_id FROM logs.Procedures WHERE name = 'create_location';
+
+            IF _procedure_id IS NULL THEN
+                RAISE EXCEPTION 'Procedure create_location is not registered in the procedures table';
+            END IF;
 
             SELECT EXISTS (SELECT 1 FROM events.city WHERE id = _city_id) INTO _city_exists;
 

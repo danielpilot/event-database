@@ -12,7 +12,7 @@ CREATE TABLE logs.Log (
     id BIGSERIAL PRIMARY KEY,
     date TIMESTAMP NOT NULL,
     db_user VARCHAR(255) NOT NULL,
-    procedure_id INTEGER NOT NULL,
+    procedure_id INTEGER,
     entry_parameters TEXT NOT NULL,
     result TEXT NOT NULL,
     FOREIGN KEY (procedure_id) REFERENCES logs.Procedures(id)
