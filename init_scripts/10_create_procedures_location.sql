@@ -52,7 +52,7 @@ $$ LANGUAGE plpgsql;
 
 -- Update location
 CREATE FUNCTION events.update_location(
-    _location_id events.location.id%type,
+    _id events.location.id%type,
     _name events.location.name%type,
     _address events.location.address%type,
     _city_id events.location.city_id%type,
@@ -69,7 +69,7 @@ BEGIN
     _entry_parameters :=
             format(
                     'ID: %s | Name: %s | Address: %s | City ID: %s | Latitude: %s | Longitude: %s',
-                    _location_id,
+                    _id,
                     _name,
                     _address,
                     _city_id,
@@ -85,13 +85,6 @@ BEGIN
                 the procedures table';
         END IF;
 
-        IF NOT EXISTS (SELECT 1
-                       FROM events.location
-                       WHERE id =
-                             _location_id) THEN
-            RAISE EXCEPTION 'Location "%" does not exist', _location_id;
-        END IF;
-
         IF NOT EXISTS (SELECT 1 FROM events.city WHERE id = _city_id) THEN
             RAISE EXCEPTION 'City "%" does not exist', _city_id;
         END IF;
@@ -102,7 +95,11 @@ BEGIN
             address   = _address,
             latitude  = _latitude,
             longitude = _longitude
-        WHERE id = _location_id;
+        WHERE id = _id;
+
+        IF NOT FOUND THEN
+            RAISE EXCEPTION 'Location "%" does not exist', _id;
+        END IF;
 
         _result := 'OK';
     EXCEPTION

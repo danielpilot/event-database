@@ -78,6 +78,10 @@ BEGIN
             parent_category = _parent_category_id
         WHERE id = _id;
 
+        IF NOT FOUND THEN
+            RAISE EXCEPTION 'Category "%" does not exist', _id;
+        END IF;
+
         _result := 'OK';
     EXCEPTION
         WHEN unique_violation THEN

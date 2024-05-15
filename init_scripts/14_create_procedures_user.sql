@@ -47,6 +47,7 @@ CREATE FUNCTION events.update_user(
     _name events.User.name%type,
     _surname events.User.surname%type,
     _email events.User.email%type,
+    _password events.User.password%type,
     _roles events.User.roles%type
 ) RETURNS TEXT AS
 $$
@@ -56,11 +57,12 @@ DECLARE
     _result           TEXT;
 BEGIN
     _entry_parameters := format(
-            'ID: %s | Name: %s | Surname: %s | Email: %s | Roles: %s',
+            'ID: %s | Name: %s | Surname: %s | Email: %s | Password: %s | Roles: %s',
             _id,
             _name,
             _surname,
             _email,
+            _password,
             _roles
                          );
 
@@ -72,11 +74,16 @@ BEGIN
         END IF;
 
         UPDATE events.User
-        SET name    = _name,
-            surname = _surname,
-            email   = _email,
-            roles   = _roles
+        SET name     = _name,
+            surname  = _surname,
+            email    = _email,
+            password = _password,
+            roles    = _roles
         WHERE id = _id;
+
+        IF NOT FOUND THEN
+            RAISE EXCEPTION 'User "%" does not exist', _id;
+        END IF;
 
         _result := 'OK';
     EXCEPTION

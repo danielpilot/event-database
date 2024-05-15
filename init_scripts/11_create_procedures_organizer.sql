@@ -50,7 +50,7 @@ $$ LANGUAGE plpgsql;
 
 -- Update organizer
 CREATE FUNCTION events.update_organizer(
-    _organizer_id events.organizer.id%type,
+    _id events.organizer.id%type,
     _name events.organizer.name%type,
     _email events.organizer.email%type,
     _type events.organizer.type%type
@@ -65,7 +65,7 @@ BEGIN
     _entry_parameters :=
             format(
                     'ID: %s, Name: %s | Email: %s | Type: %s',
-                    _organizer_id,
+                    _id,
                     _name,
                     _email,
                     _type
@@ -82,11 +82,12 @@ BEGIN
         SET name  = _name,
             email = _email,
             type  = _type
-        WHERE id = _organizer_id;
+        WHERE id = _id;
 
         IF NOT FOUND THEN
-            RAISE EXCEPTION 'Organizer "%" does not exist', _organizer_id;
+            RAISE EXCEPTION 'Organizer "%" does not exist', _id;
         END IF;
+
         _result := 'OK';
     EXCEPTION
         WHEN unique_violation THEN
