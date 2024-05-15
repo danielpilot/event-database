@@ -134,7 +134,7 @@ DECLARE
     _category_id            INTEGER;
 BEGIN
     _entry_parameters := format(
-            'ID: %s || Name: %s | Start Date: %s | End Date: %s | Schedule: %s | Description: %s | Price: %s' ||
+            'ID: %s | Name: %s | Start Date: %s | End Date: %s | Schedule: %s | Description: %s | Price: %s' ||
             ' | Image: %s | Event Status: %s | Event Published: %s | Comments: %s | Organizer ID: %s' ||
             ' | Location ID: %s | Categories: %s',
             _id,
@@ -154,10 +154,10 @@ BEGIN
                          );
 
     BEGIN
-        SELECT id INTO _procedure_id FROM logs.Procedures WHERE name = 'create_event';
+        SELECT id INTO _procedure_id FROM logs.Procedures WHERE name = 'update_event';
 
         IF _procedure_id IS NULL THEN
-            RAISE EXCEPTION 'Procedure create_event is not registered in the procedures table';
+            RAISE EXCEPTION 'Procedure update_event is not registered in the procedures table';
         END IF;
 
         -- Check that all categories exist
@@ -202,6 +202,47 @@ BEGIN
 
         _result := 'OK';
     EXCEPTION
+        WHEN raise_exception THEN
+            _result := format('ERROR: %s', SQLERRM);
+    END;
+
+    INSERT INTO logs.Log (date, db_user, procedure_id, entry_parameters, result)
+    VALUES (NOW(), CURRENT_USER, _procedure_id, _entry_parameters, _result);
+
+    RETURN _result;
+END
+$$ LANGUAGE plpgsql;
+
+-- Delete event
+CREATE FUNCTION events.delete_event(
+    _id events.Event.id%type
+) RETURNS TEXT AS
+$$
+DECLARE
+    _entry_parameters TEXT;
+    _procedure_id     INTEGER;
+    _result           TEXT;
+BEGIN
+    _entry_parameters := format('ID: %s', _id);
+
+    BEGIN
+        SELECT id INTO _procedure_id FROM logs.Procedures WHERE name = 'delete_event';
+
+        IF _procedure_id IS NULL THEN
+            RAISE EXCEPTION 'Procedure delete_event is not registered in the procedures table';
+        END IF;
+
+        DELETE
+        FROM events.Event
+        WHERE id = _id;
+
+        IF NOT FOUND THEN
+            RAISE EXCEPTION 'Event "%" does not exist', _id;
+        END IF;
+
+    EXCEPTION
+        WHEN foreign_key_violation THEN
+            _result := 'ERROR: Event has related transactions';
         WHEN raise_exception THEN
             _result := format('ERROR: %s', SQLERRM);
     END;
