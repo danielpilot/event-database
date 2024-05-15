@@ -35,4 +35,7 @@ INSERT INTO events.Category (name, parent_category) VALUES ('Concert', null),
 -- Load initial procedures
 INSERT INTO logs.Procedures (name, description) VALUES ('create_location', 'Creates a new location'),
                                                        ('update_location', 'Updates a location'),
-                                                       ('delete_location', 'Deletes a location');
+                                                       ('delete_location', 'Deletes a location'),
+                                                       ('create_organizer', 'Creates a new organizer'),
+                                                       ('update_organizer', 'Updates an organizer'),
+                                                       ('delete_organizer', 'Delete an organizer');
