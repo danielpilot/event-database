@@ -79,12 +79,13 @@ BEGIN
         END IF;
 
         UPDATE events.organizer_contact
-        SET email = _email,
+        SET email     = _email,
             telephone = _telephone
-        WHERE name = _name AND organizer_id = _organizer_id;
+        WHERE name = _name
+          AND organizer_id = _organizer_id;
 
         IF NOT FOUND THEN
-             RAISE EXCEPTION 'Organizer contact does not exist';
+            RAISE EXCEPTION 'Organizer contact does not exist';
         END IF;
 
         _result := 'OK';
@@ -128,11 +129,13 @@ BEGIN
             RAISE EXCEPTION 'Procedure delete_organizer_contact is not registered in the procedures table';
         END IF;
 
-        DELETE FROM events.organizer_contact
-        WHERE name = _name AND organizer_id = _organizer_id;
+        DELETE
+        FROM events.organizer_contact
+        WHERE name = _name
+          AND organizer_id = _organizer_id;
 
         IF NOT FOUND THEN
-             RAISE EXCEPTION 'Organizer contact does not exist';
+            RAISE EXCEPTION 'Organizer contact does not exist';
         END IF;
 
         _result := 'OK';
