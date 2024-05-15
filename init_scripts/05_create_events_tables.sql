@@ -67,7 +67,7 @@ CREATE TABLE events.Organizer_Contact (
     email VARCHAR(255) NOT NULL UNIQUE,
     telephone VARCHAR(20),
     PRIMARY KEY (name, organizer_id),
-    FOREIGN KEY (organizer_id) REFERENCES events.Organizer(id)
+    FOREIGN KEY (organizer_id) REFERENCES events.Organizer(id) ON DELETE CASCADE
 ) TABLESPACE operational_tablespace;
 
 -- Create event table
