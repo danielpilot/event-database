@@ -106,7 +106,7 @@ CREATE TABLE events.Event_Has_Category (
     event_id INTEGER NOT NULL,
     category_id INTEGER NOT NULL,
     PRIMARY KEY (event_id, category_id),
-    FOREIGN KEY (event_id) REFERENCES events.Event(id),
+    FOREIGN KEY (event_id) REFERENCES events.Event(id) ON DELETE CASCADE,
     FOREIGN KEY (category_id) REFERENCES events.Category(id)
 ) TABLESPACE operational_tablespace;
 
