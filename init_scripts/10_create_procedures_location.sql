@@ -1,0 +1,160 @@
+\c event_database;
+
+-- Create location
+CREATE FUNCTION events.create_location(
+    _name events.location.name%type,
+    _address events.location.address%type,
+    _city_id events.location.city_id%type,
+    _latitude events.location.latitude%type,
+    _longitude events.location.longitude%type
+) RETURNS TEXT
+AS
+$$
+DECLARE
+    _entry_parameters TEXT;
+    _procedure_id     INTEGER;
+    _result           TEXT;
+BEGIN
+    _entry_parameters :=
+            format(
+                    'Name: %s|Address: %s|CityID: %s|Latitude: %s|Longitude: %s',
+                    _name,
+                    _address,
+                    _city_id,
+                    _latitude,
+                    _longitude
+            );
+
+    BEGIN
+        SELECT id INTO _procedure_id FROM logs.Procedures WHERE name = 'create_location';
+
+        IF _procedure_id IS NULL THEN
+            RAISE EXCEPTION 'Procedure create_location is not registered in the procedures table';
+        END IF;
+
+        INSERT INTO events.location (name, city_id, address, latitude, longitude)
+        VALUES (_name, _city_id, _address, _latitude, _longitude);
+
+        _result := 'OK';
+    EXCEPTION
+        WHEN foreign_key_violation THEN
+            _result := format('ERROR: City %s does not exist', _city_id);
+        WHEN raise_exception THEN
+            _result := format('ERROR: %s', SQLERRM);
+    END;
+
+    INSERT INTO logs.Log (date, db_user, procedure_id, entry_parameters, result)
+    VALUES (NOW(), CURRENT_USER, _procedure_id, _entry_parameters, _result);
+
+    RETURN _result;
+END
+$$ LANGUAGE plpgsql;
+
+-- Update location
+CREATE FUNCTION events.update_location(
+    _location_id events.location.id%type,
+    _name events.location.name%type,
+    _address events.location.address%type,
+    _city_id events.location.city_id%type,
+    _latitude events.location.latitude%type,
+    _longitude events.location.longitude%type
+) RETURNS TEXT
+AS
+$$
+DECLARE
+    _entry_parameters TEXT;
+    _procedure_id     INTEGER;
+    _result           TEXT;
+BEGIN
+    _entry_parameters :=
+            format(
+                    'ID: %s|Name: %s|Address: %s|CityID: %s|Latitude: %s|Longitude: %s',
+                    _location_id,
+                    _name,
+                    _address,
+                    _city_id,
+                    _latitude,
+                    _longitude
+            );
+
+    BEGIN
+        SELECT id INTO _procedure_id FROM logs.Procedures WHERE name = 'update_location';
+
+        IF _procedure_id IS NULL THEN
+            RAISE EXCEPTION 'Procedure update_location is not registered in
+                the procedures table';
+        END IF;
+
+        IF NOT EXISTS (SELECT 1
+                       FROM events.location
+                       WHERE id =
+                             _location_id) THEN
+            RAISE EXCEPTION 'Location % does not exist', _location_id;
+        END IF;
+
+        IF NOT EXISTS (SELECT 1 FROM events.city WHERE id = _city_id) THEN
+            RAISE EXCEPTION 'City % does not exist', _city_id;
+        END IF;
+
+        UPDATE events.location
+        SET name      = _name,
+            city_id   = _city_id,
+            address   = _address,
+            latitude  = _latitude,
+            longitude = _longitude
+        WHERE id = _location_id;
+
+        _result := 'OK';
+    EXCEPTION
+        WHEN raise_exception THEN
+            _result := format('ERROR: %s', SQLERRM);
+    END;
+
+    INSERT INTO logs.Log (date, db_user, procedure_id, entry_parameters,
+                          result)
+    VALUES (NOW(), CURRENT_USER, _procedure_id,
+            _entry_parameters, _result);
+
+    RETURN _result;
+END
+$$ LANGUAGE plpgsql;
+
+-- Delete location
+CREATE FUNCTION events.delete_location(
+    _location_id events.location.id%type
+) RETURNS TEXT
+AS
+$$
+DECLARE
+    _entry_parameters TEXT;
+    _procedure_id     INTEGER;
+    _result           TEXT;
+BEGIN
+    _entry_parameters := format('ID: %s', _location_id);
+
+    SELECT id INTO _procedure_id FROM logs.Procedures WHERE name = 'delete_location';
+
+    BEGIN
+        IF _procedure_id IS NULL THEN
+            RAISE EXCEPTION 'Procedure delete_location is not registered in the procedures table';
+        END IF;
+
+        DELETE FROM events.location WHERE id = _location_id;
+        IF NOT FOUND THEN
+            RAISE EXCEPTION 'Location % does not exist', _location_id;
+        END IF;
+
+        _result := 'OK';
+    EXCEPTION
+        WHEN foreign_key_violation THEN
+            _result := format('Location %s has related events', _location_id);
+        WHEN raise_exception THEN
+            _result := format('ERROR: %s', SQLERRM);
+    END;
+
+    INSERT INTO logs.Log (date, db_user, procedure_id, entry_parameters, result)
+    VALUES (NOW(), CURRENT_USER, _procedure_id, _entry_parameters, _result);
+
+    RETURN _result;
+END
+$$ LANGUAGE plpgsql;
