@@ -150,3 +150,14 @@ CREATE TABLE events.Rating (
     FOREIGN KEY (event_id) REFERENCES events.Event(id),
     FOREIGN KEY (user_id) REFERENCES events.User(id)
 ) TABLESPACE operational_tablespace;
+
+CREATE TABLE events.Transaction (
+    event_id INTEGER NOT NULL,
+    user_id INTEGER NOT NULL,
+    unit_price REAL NOT NULL,
+    quantity SMALLINT NOT NULL,
+    reference VARCHAR(5) NOT NULL UNIQUE,
+    PRIMARY KEY (event_id, user_id),
+    FOREIGN KEY (event_id) REFERENCES events.Event(id),
+    FOREIGN KEY (user_id) REFERENCES events.User(id)
+) TABLESPACE operational_tablespace;
