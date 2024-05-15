@@ -24,14 +24,6 @@ INSERT INTO events.City (name, province_id) VALUES ('Madrid', 1),
                                                    ('Barcelona', 6),
                                                    ('Vigo', 2);
 
--- Load initial categories
-INSERT INTO events.Category (name, parent_category) VALUES ('Concert', null),
-                                                           ('Rock', 1),
-                                                           ('Classical', 1),
-                                                           ('Electronic', 1),
-                                                           ('Convention', null),
-                                                           ('Technological', 5);
-
 -- Load initial procedures
 INSERT INTO logs.Procedures (name, description) VALUES ('create_location', 'Creates a new location'),
                                                        ('update_location', 'Updates a location'),
@@ -41,4 +33,7 @@ INSERT INTO logs.Procedures (name, description) VALUES ('create_location', 'Crea
                                                        ('delete_organizer', 'Delete an organizer'),
                                                        ('create_organizer_contact', 'Creates a new organizer contact'),
                                                        ('update_organizer_contact', 'Updates an organizer contact'),
-                                                       ('delete_organizer_contact', 'Delete an organizer contact') ;
+                                                       ('delete_organizer_contact', 'Delete an organizer contact'),
+                                                       ('create_category', 'Creates a new category'),
+                                                       ('update_category', 'Updates a category'),
+                                                       ('delete_category', 'Delete a category');

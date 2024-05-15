@@ -36,7 +36,7 @@ BEGIN
         _result := 'OK';
     EXCEPTION
         WHEN unique_violation THEN
-            _result := 'ERROR: Email already exists';
+            _result := format('ERROR: Email "%s" already exists', _email);
         WHEN raise_exception THEN
             _result := format('ERROR: %s', SQLERRM);
     END;
@@ -90,7 +90,7 @@ BEGIN
         _result := 'OK';
     EXCEPTION
         WHEN unique_violation THEN
-            _result := 'ERROR: Email already assigned to another user';
+            _result := format('ERROR: Email "%s" already assigned to another user', _email);
         WHEN raise_exception THEN
             _result := format('ERROR: %s', SQLERRM);
     END;

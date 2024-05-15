@@ -49,7 +49,8 @@ CREATE TABLE events.Category (
     id SERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL UNIQUE,
     parent_category INTEGER,
-    FOREIGN KEY (parent_category) REFERENCES events.Category(id)
+    FOREIGN KEY (parent_category) REFERENCES events.Category(id) ON DELETE SET NULL,
+    UNIQUE (name, parent_category)
 ) TABLESPACE operational_tablespace;
 
 -- Create organizer table

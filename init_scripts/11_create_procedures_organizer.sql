@@ -34,9 +34,9 @@ BEGIN
         _result := 'OK';
     EXCEPTION
         WHEN unique_violation THEN
-            _result := 'ERROR: Email already exists';
+            _result := format('ERROR: Email "%s"already exists', _email);
         WHEN invalid_text_representation THEN
-            _result := 'ERROR: Invalid organizer type';
+            _result := format('ERROR: Invalid organizer type "%s"', _type);
         WHEN raise_exception THEN
             _result := format('ERROR: %s', SQLERRM);
     END;
@@ -85,14 +85,14 @@ BEGIN
         WHERE id = _organizer_id;
 
         IF NOT FOUND THEN
-            RAISE EXCEPTION 'Organizer % does not exist', _organizer_id;
+            RAISE EXCEPTION 'Organizer "%" does not exist', _organizer_id;
         END IF;
         _result := 'OK';
     EXCEPTION
         WHEN unique_violation THEN
-            _result := 'ERROR: Email already assigned to another user';
+            _result := format('ERROR: Email "%s" already assigned to another user', _email);
         WHEN invalid_text_representation THEN
-            _result := 'ERROR: Invalid organizer type';
+            _result := format('ERROR: Invalid organizer type "%s"', _type);
         WHEN raise_exception THEN
             _result := format('ERROR: %s', SQLERRM);
     END;
@@ -125,13 +125,13 @@ BEGIN
         END IF;
 
         IF NOT FOUND THEN
-            RAISE EXCEPTION 'Organizer % does not exist', _organizer_id;
+            RAISE EXCEPTION 'Organizer "%" does not exist', _organizer_id;
         END IF;
 
         _result := 'OK';
     EXCEPTION
         WHEN foreign_key_violation THEN
-            _result := format('Organizer %s has related events', _organizer_id);
+            _result := format('Organizer "%s" has related events', _organizer_id);
         WHEN raise_exception THEN
             _result := format('ERROR: %s', SQLERRM);
     END;

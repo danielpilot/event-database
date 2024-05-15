@@ -38,7 +38,7 @@ BEGIN
         _result := 'OK';
     EXCEPTION
         WHEN foreign_key_violation THEN
-            _result := format('ERROR: City %s does not exist', _city_id);
+            _result := format('ERROR: City "%s" does not exist', _city_id);
         WHEN raise_exception THEN
             _result := format('ERROR: %s', SQLERRM);
     END;
@@ -89,11 +89,11 @@ BEGIN
                        FROM events.location
                        WHERE id =
                              _location_id) THEN
-            RAISE EXCEPTION 'Location % does not exist', _location_id;
+            RAISE EXCEPTION 'Location "%" does not exist', _location_id;
         END IF;
 
         IF NOT EXISTS (SELECT 1 FROM events.city WHERE id = _city_id) THEN
-            RAISE EXCEPTION 'City % does not exist', _city_id;
+            RAISE EXCEPTION 'City "%" does not exist', _city_id;
         END IF;
 
         UPDATE events.location
@@ -141,13 +141,13 @@ BEGIN
 
         DELETE FROM events.location WHERE id = _location_id;
         IF NOT FOUND THEN
-            RAISE EXCEPTION 'Location % does not exist', _location_id;
+            RAISE EXCEPTION 'Location "%" does not exist', _location_id;
         END IF;
 
         _result := 'OK';
     EXCEPTION
         WHEN foreign_key_violation THEN
-            _result := format('Location %s has related events', _location_id);
+            _result := format('Location "%s" has related events', _location_id);
         WHEN raise_exception THEN
             _result := format('ERROR: %s', SQLERRM);
     END;
