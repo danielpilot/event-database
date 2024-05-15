@@ -1,4 +1,4 @@
-\c events_database;
+\c event_database;
 
 -- Create category
 CREATE FUNCTION events.create_category(
