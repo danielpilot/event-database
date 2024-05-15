@@ -6,4 +6,4 @@ CREATE TABLE logs.Log (
     date TIMESTAMP NOT NULL,
     entry_parameters VARCHAR(255) NOT NULL,
     result VARCHAR(255) NOT NULL
-);
+) TABLESPACE operational_tablespace;
