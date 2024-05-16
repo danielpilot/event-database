@@ -161,6 +161,6 @@ CREATE TABLE events.Transaction (
     quantity SMALLINT NOT NULL,
     reference VARCHAR(5) NOT NULL UNIQUE,
     PRIMARY KEY (event_id, user_id),
-    FOREIGN KEY (event_id) REFERENCES events.Event(id),
+    FOREIGN KEY (event_id) REFERENCES events.Event_With_Sales(id),
     FOREIGN KEY (user_id) REFERENCES events.User(id)
 ) TABLESPACE operational_tablespace;
