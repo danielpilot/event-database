@@ -63,8 +63,7 @@ BEGIN
             _surname,
             _email,
             _password,
-            _roles
-                         );
+            _roles);
 
     BEGIN
         SELECT id INTO _procedure_id FROM logs.Procedures WHERE name = 'update_user';

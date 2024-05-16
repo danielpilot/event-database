@@ -112,13 +112,13 @@ CREATE TABLE events.Event_Has_Category (
 
 -- Create event change table
 CREATE TABLE events.Event_Change (
-    id SERIAL NOT NULL,
+    id BIGSERIAL NOT NULL,
     event_id INTEGER NOT NULL,
     type VARCHAR(30) NOT NULL CHECK ( type IN ('Delayed', 'Cancelled', 'Location Change', 'Price Change', 'Other') ),
     date TIMESTAMP NOT NULL,
     description TEXT NOT NULL,
     PRIMARY KEY (id, event_id),
-    FOREIGN KEY (event_id) REFERENCES events.Event(id)
+    FOREIGN KEY (event_id) REFERENCES events.Event(id) ON DELETE CASCADE
 ) TABLESPACE operational_tablespace;
 
 -- Create user table
