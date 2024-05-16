@@ -98,7 +98,7 @@ CREATE TABLE events.Event_With_Sales (
     event_id INTEGER NOT NULL,
     capacity SMALLINT NOT NULL,
     maximum_per_sale SMALLINT NOT NULL,
-    FOREIGN KEY (event_id) REFERENCES events.Event(id)
+    FOREIGN KEY (event_id) REFERENCES events.Event(id) ON DELETE CASCADE
 ) TABLESPACE operational_tablespace;
 
 -- Create event category relation table
