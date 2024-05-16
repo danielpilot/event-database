@@ -35,6 +35,8 @@ BEGIN
 
         _result := 'OK';
     EXCEPTION
+        WHEN unique_violation THEN
+            _result := format('ERROR: Favorite of user "%s" for event "%s" already exists', _user_id, _event_id);
         WHEN OTHERS THEN
             _result := format('ERROR: %s', SQLERRM);
     END;

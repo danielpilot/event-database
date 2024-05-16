@@ -49,13 +49,18 @@ BEGIN
             RAISE EXCEPTION 'User "%" does not exist', _user_id;
         END IF;
 
+        IF EXISTS (SELECT 1 FROM events.transaction WHERE reference = _reference) THEN
+            RAISE EXCEPTION 'ERROR: Transaction with reference "%" already exists', _reference;
+        END IF;
+
+
         INSERT INTO events.Transaction (event_id, user_id, unit_price, quantity, reference)
         VALUES (_event_id, _user_id, _unit_price, _quantity, _reference);
 
         _result := 'OK';
     EXCEPTION
         WHEN unique_violation THEN
-            _result := format('ERROR: Transaction with reference "%s" already exists', _reference);
+            _result := format('ERROR: Transaction for user "%s" in event "%s" already exists', _user_id, _event_id);
         WHEN OTHERS THEN
             _result := format('ERROR: %s', SQLERRM);
     END;

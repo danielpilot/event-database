@@ -30,6 +30,10 @@ BEGIN
             RAISE EXCEPTION 'Procedure create_organizer_contact is not registered in the procedures table';
         END IF;
 
+        IF EXISTS (SELECT 1 FROM events.organizer_contact WHERE email = _email) THEN
+            RAISE EXCEPTION 'ERROR: Email "%s" already exists', _email;
+        END IF;
+
         INSERT INTO events.organizer_contact (name, organizer_id, email, telephone)
         VALUES (_name, _organizer_id, _email, _telephone);
 
@@ -38,7 +42,7 @@ BEGIN
         WHEN foreign_key_violation THEN
             _result := format('ERROR: Organizer "%s" does not exist', _organizer_id);
         WHEN unique_violation THEN
-            _result := format('ERROR: Email "%s" already exists', _email);
+            _result := format('ERROR: Contact "%s" for organizer "%s" already exists', _name, _organizer_id);
         WHEN OTHERS THEN
             _result := format('ERROR: %s', SQLERRM);
     END;
