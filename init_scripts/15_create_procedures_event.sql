@@ -247,6 +247,9 @@ BEGIN
                 VALUES (_id, _category_id);
             END LOOP;
 
+        -- We make sure this data is persisted in case of future foreign key violation
+        SAVEPOINT categories_update;
+
         -- Handle sales data
         IF _event_sales_data IS NOT NULL THEN
             IF EXISTS (SELECT 1 FROM events.Event_With_Sales WHERE event_id = _id) THEN
@@ -265,6 +268,7 @@ BEGIN
         _result := 'OK';
     EXCEPTION
         WHEN foreign_key_violation THEN
+            ROLLBACK TO categories_update;
             _result := 'ERROR: Unable to remove event with sales with related transactions';
         WHEN OTHERS THEN
             _result := format('ERROR: %s', SQLERRM);

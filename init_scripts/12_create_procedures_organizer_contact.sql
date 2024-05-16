@@ -30,13 +30,19 @@ BEGIN
             RAISE EXCEPTION 'Procedure create_organizer_contact is not registered in the procedures table';
         END IF;
 
+        IF EXISTS (SELECT 1 FROM events.organizer_contact WHERE email = _email) THEN
+            RAISE EXCEPTION 'ERROR: Email "%s" already exists', _email;
+        END IF;
+
         INSERT INTO events.organizer_contact (name, organizer_id, email, telephone)
         VALUES (_name, _organizer_id, _email, _telephone);
 
         _result := 'OK';
     EXCEPTION
+        WHEN foreign_key_violation THEN
+            _result := format('ERROR: Organizer "%s" does not exist', _organizer_id);
         WHEN unique_violation THEN
-            _result := format('ERROR: Email "%s" already exists', _email);
+            _result := format('ERROR: Contact "%s" for organizer "%s" already exists', _name, _organizer_id);
         WHEN OTHERS THEN
             _result := format('ERROR: %s', SQLERRM);
     END;
@@ -105,7 +111,7 @@ $$ LANGUAGE plpgsql;
 
 -- Delete organizer contact
 CREATE FUNCTION events.delete_organizer_contact(
-    _id events.organizer_contact.organizer_id%type,
+    _organizer_id events.organizer_contact.organizer_id%type,
     _name events.organizer_contact.name%type
 ) RETURNS TEXT
 AS
@@ -117,8 +123,8 @@ DECLARE
 BEGIN
     _entry_parameters :=
             format(
-                    'ID: %s | Name: %s',
-                    _id,
+                    'Organizer ID: %s | Name: %s',
+                    _organizer_id,
                     _name
             );
 
@@ -132,10 +138,10 @@ BEGIN
         DELETE
         FROM events.organizer_contact
         WHERE name = _name
-          AND organizer_id = _id;
+          AND organizer_id = _organizer_id;
 
         IF NOT FOUND THEN
-            RAISE EXCEPTION 'Organizer contact "%" does not exist', _id;
+            RAISE EXCEPTION 'Organizer contact "%" does not exist', _organizer_id;
         END IF;
 
         _result := 'OK';
