@@ -45,4 +45,7 @@ INSERT INTO logs.Procedures (name, description) VALUES ('create_location', 'Crea
                                                        ('delete_event', 'Delete an event'),
                                                        ('create_event_change', 'Creates a new event change'),
                                                        ('update_event_change', 'Updates an event change'),
-                                                       ('delete_event_change', 'Delete an event change');
+                                                       ('delete_event_change', 'Delete an event change'),
+                                                       ('create_rating', 'Creates a new rating'),
+                                                       ('update_rating', 'Updates a rating'),
+                                                       ('delete_rating', 'Delete a rating');

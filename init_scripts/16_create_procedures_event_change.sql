@@ -142,4 +142,4 @@ BEGIN
 
     RETURN _result;
 END
-$$
+$$ LANGUAGE plpgsql;
