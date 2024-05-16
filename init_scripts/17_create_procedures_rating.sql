@@ -29,6 +29,10 @@ BEGIN
             RAISE EXCEPTION 'Procedure create_rating is not registered in the procedures table';
         END IF;
 
+        IF _punctuation > 5 THEN
+            RAISE EXCEPTION 'Punctuation should be less than or equal to 5';
+        END IF;
+
         IF NOT EXISTS (SELECT 1 FROM events.Event WHERE id = _event_id) THEN
             RAISE EXCEPTION 'Event "%" does not exist', _event_id;
         END IF;
@@ -78,6 +82,10 @@ BEGIN
 
     BEGIN
         SELECT id INTO _procedure_id FROM logs.Procedure WHERE name = 'update_rating';
+
+        IF _punctuation > 5 THEN
+            RAISE EXCEPTION 'Punctuation should be less than or equal to 5';
+        END IF;
 
         IF _procedure_id IS NULL THEN
             RAISE EXCEPTION 'Procedure update_rating is not registered in the procedures table';

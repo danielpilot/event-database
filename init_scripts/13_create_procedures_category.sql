@@ -20,12 +20,6 @@ BEGIN
             RAISE EXCEPTION 'Procedure create_category is not registered in the procedures table';
         END IF;
 
-        IF _parent_category_id IS NOT NULL THEN
-            IF NOT EXISTS (SELECT 1 FROM events.category WHERE id = _parent_category_id) THEN
-                RAISE EXCEPTION 'Parent with ID "%" does not exist', _parent_category_id;
-            END IF;
-        END IF;
-
         INSERT INTO events.Category (name, parent_category)
         VALUES (_name, _parent_category_id);
 

@@ -47,7 +47,7 @@ BEGIN
     VALUES (NOW(), CURRENT_USER, _procedure_id, _entry_parameters, _result);
 
     RETURN _result;
-END
+END;
 $$ LANGUAGE plpgsql;
 
 -- Update location
@@ -85,10 +85,6 @@ BEGIN
                 the procedures table';
         END IF;
 
-        IF NOT EXISTS (SELECT 1 FROM events.city WHERE id = _city_id) THEN
-            RAISE EXCEPTION 'City "%" does not exist', _city_id;
-        END IF;
-
         UPDATE events.location
         SET name      = _name,
             city_id   = _city_id,
@@ -103,6 +99,8 @@ BEGIN
 
         _result := 'OK';
     EXCEPTION
+        WHEN foreign_key_violation THEN
+            _result := format('City "%s" does not exist', _city_id);
         WHEN OTHERS THEN
             _result := format('ERROR: %s', SQLERRM);
     END;
@@ -113,7 +111,7 @@ BEGIN
             _entry_parameters, _result);
 
     RETURN _result;
-END
+END;
 $$ LANGUAGE plpgsql;
 
 -- Delete location
@@ -137,6 +135,7 @@ BEGIN
         END IF;
 
         DELETE FROM events.location WHERE id = _id;
+
         IF NOT FOUND THEN
             RAISE EXCEPTION 'Location "%" does not exist', _id;
         END IF;
@@ -153,5 +152,5 @@ BEGIN
     VALUES (NOW(), CURRENT_USER, _procedure_id, _entry_parameters, _result);
 
     RETURN _result;
-END
+END;
 $$ LANGUAGE plpgsql;

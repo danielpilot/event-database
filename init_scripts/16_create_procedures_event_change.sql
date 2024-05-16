@@ -4,7 +4,6 @@
 CREATE FUNCTION events.create_event_change(
     _event_id events.Event_Change.event_id%type,
     _type events.Event_Change.type%type,
-    _date events.Event_Change.date%type,
     _description events.Event_Change.description %type
 ) RETURNS TEXT AS
 $$
@@ -14,10 +13,9 @@ DECLARE
     _result           TEXT;
 BEGIN
     _entry_parameters := format(
-            'Event ID: %s | Type: %s | Date: %s | Description: %s',
+            'Event ID: %s | Type: %s | Description: %s',
             _event_id,
             _type,
-            _date,
             _description);
 
     BEGIN
@@ -28,12 +26,12 @@ BEGIN
         END IF;
 
         INSERT INTO events.Event_Change (event_id, type, date, description)
-        VALUES (_event_id, _type, _date, _description);
+        VALUES (_event_id, _type, NOW(), _description);
 
         _result := 'OK';
     EXCEPTION
         WHEN foreign_key_violation THEN
-            _result := 'ERROR: Event does not exist';
+            _result := format('ERROR: Event "%s" does not exist', _event_id);
         WHEN check_violation THEN
             _result := format('ERROR: Invalid event change type "%s"', _type);
         WHEN OTHERS THEN
@@ -52,7 +50,6 @@ CREATE FUNCTION events.update_event_change(
     _id events.Event_Change.id%type,
     _event_id events.Event_Change.event_id%type,
     _type events.Event_Change.type%type,
-    _date events.Event_Change.date%type,
     _description events.Event_Change.description %type
 ) RETURNS TEXT AS
 $$
@@ -62,11 +59,10 @@ DECLARE
     _result           TEXT;
 BEGIN
     _entry_parameters := format(
-            'ID: %s, Event ID: %s | Type: %s | Date: %s | Description: %s',
+            'ID: %s, Event ID: %s | Type: %s | Description: %s',
             _id,
             _event_id,
             _type,
-            _date,
             _description);
 
     BEGIN
@@ -79,7 +75,7 @@ BEGIN
         UPDATE events.Event_Change
         SET event_id    = _event_id,
             type        = _type,
-            date        = _date,
+            date        = NOW(),
             description = _description
         WHERE id = _id;
 
@@ -90,7 +86,7 @@ BEGIN
         _result := 'OK';
     EXCEPTION
         WHEN foreign_key_violation THEN
-            _result := 'ERROR: Event does not exist';
+            _result := format('ERROR: Event "%s" does not exist', _event_id);
         WHEN check_violation THEN
             _result := format('ERROR: Invalid event change type "%s"', _type);
         WHEN OTHERS THEN
