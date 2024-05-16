@@ -168,7 +168,7 @@ BEGIN
     _entry_parameters := format(
             'ID: %s | Name: %s | Start Date: %s | End Date: %s | Schedule: %s | Description: %s | Price: %s' ||
             ' | Image: %s | Event Status: %s | Event Published: %s | Comments: %s | Organizer ID: %s' ||
-            ' | Location ID: %s | Categories: %s',
+            ' | Location ID: %s | Categories: %s | Event Sales Data: %s',
             _id,
             _name,
             _start_date,
