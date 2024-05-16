@@ -25,7 +25,7 @@ BEGIN
             _reference);
 
     BEGIN
-        SELECT id INTO _procedure_id FROM logs.Procedures WHERE name = 'create_transaction';
+        SELECT id INTO _procedure_id FROM logs.Procedure WHERE name = 'create_transaction';
 
         IF _procedure_id IS NULL THEN
             RAISE EXCEPTION 'Procedure create_transaction is not registered in the procedures table';
@@ -91,7 +91,7 @@ BEGIN
             _reference);
 
     BEGIN
-        SELECT id INTO _procedure_id FROM logs.Procedures WHERE name = 'update_transaction';
+        SELECT id INTO _procedure_id FROM logs.Procedure WHERE name = 'update_transaction';
 
         IF _procedure_id IS NULL THEN
             RAISE EXCEPTION 'Procedure update_transaction is not registered in the procedures table';
@@ -150,7 +150,7 @@ BEGIN
             _user_id);
 
     BEGIN
-        SELECT id INTO _procedure_id FROM logs.Procedures WHERE name = 'delete_transaction';
+        SELECT id INTO _procedure_id FROM logs.Procedure WHERE name = 'delete_transaction';
 
         IF _procedure_id IS NULL THEN
             RAISE EXCEPTION 'Procedure delete_transaction is not registered in the procedures table';

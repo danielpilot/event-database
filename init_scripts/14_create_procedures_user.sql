@@ -17,7 +17,7 @@ BEGIN
     _entry_parameters := format('Name: %s | Surname: %s | Email: %s | Roles: %s', _name, _surname, _email, _roles);
 
     BEGIN
-        SELECT id INTO _procedure_id FROM logs.Procedures WHERE name = 'create_user';
+        SELECT id INTO _procedure_id FROM logs.Procedure WHERE name = 'create_user';
 
         IF _procedure_id IS NULL THEN
             RAISE EXCEPTION 'Procedure create_user is not registered in the procedures table';
@@ -66,7 +66,7 @@ BEGIN
             _roles);
 
     BEGIN
-        SELECT id INTO _procedure_id FROM logs.Procedures WHERE name = 'update_user';
+        SELECT id INTO _procedure_id FROM logs.Procedure WHERE name = 'update_user';
 
         IF _procedure_id IS NULL THEN
             RAISE EXCEPTION 'Procedure update_user is not registered in the procedures table';
@@ -112,7 +112,7 @@ BEGIN
     _entry_parameters := format('ID: %s', _id);
 
     BEGIN
-        SELECT id INTO _procedure_id FROM logs.Procedures WHERE name = 'delete_user';
+        SELECT id INTO _procedure_id FROM logs.Procedure WHERE name = 'delete_user';
 
         IF _procedure_id IS NULL THEN
             RAISE EXCEPTION 'Procedure delete_user is not registered in the procedures table';
