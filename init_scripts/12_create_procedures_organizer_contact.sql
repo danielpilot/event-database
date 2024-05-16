@@ -24,7 +24,7 @@ BEGIN
             );
 
     BEGIN
-        SELECT id INTO _procedure_id FROM logs.Procedures WHERE name = 'create_organizer_contact';
+        SELECT id INTO _procedure_id FROM logs.Procedure WHERE name = 'create_organizer_contact';
 
         IF _procedure_id IS NULL THEN
             RAISE EXCEPTION 'Procedure create_organizer_contact is not registered in the procedures table';
@@ -72,7 +72,7 @@ BEGIN
             );
 
     BEGIN
-        SELECT id INTO _procedure_id FROM logs.Procedures WHERE name = 'update_organizer_contact';
+        SELECT id INTO _procedure_id FROM logs.Procedure WHERE name = 'update_organizer_contact';
 
         IF _procedure_id IS NULL THEN
             RAISE EXCEPTION 'Procedure update_organizer_contact is not registered in the procedures table';
@@ -123,7 +123,7 @@ BEGIN
             );
 
     BEGIN
-        SELECT id INTO _procedure_id FROM logs.Procedures WHERE name = 'delete_organizer_contact';
+        SELECT id INTO _procedure_id FROM logs.Procedure WHERE name = 'delete_organizer_contact';
 
         IF _procedure_id IS NULL THEN
             RAISE EXCEPTION 'Procedure delete_organizer_contact is not registered in the procedures table';

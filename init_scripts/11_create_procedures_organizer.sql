@@ -22,7 +22,7 @@ BEGIN
             );
 
     BEGIN
-        SELECT id INTO _procedure_id FROM logs.Procedures WHERE name = 'create_organizer';
+        SELECT id INTO _procedure_id FROM logs.Procedure WHERE name = 'create_organizer';
 
         IF _procedure_id IS NULL THEN
             RAISE EXCEPTION 'Procedure create_organizer is not registered in the procedures table';
@@ -72,7 +72,7 @@ BEGIN
             );
 
     BEGIN
-        SELECT id INTO _procedure_id FROM logs.Procedures WHERE name = 'update_organizer';
+        SELECT id INTO _procedure_id FROM logs.Procedure WHERE name = 'update_organizer';
 
         IF _procedure_id IS NULL THEN
             RAISE EXCEPTION 'Procedure update_organizer is not registered in the procedures table';
@@ -119,7 +119,7 @@ BEGIN
     _entry_parameters := format('ID: %s', _id);
 
     BEGIN
-        SELECT id INTO _procedure_id FROM logs.Procedures WHERE name = 'delete_organizer';
+        SELECT id INTO _procedure_id FROM logs.Procedure WHERE name = 'delete_organizer';
 
         IF _procedure_id IS NULL THEN
             RAISE EXCEPTION 'Procedure delete_organizer is not registered in the procedures table';

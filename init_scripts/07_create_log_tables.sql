@@ -1,7 +1,7 @@
 \c event_database;
 
 -- Create procedure list table
-CREATE TABLE logs.Procedures (
+CREATE TABLE logs.Procedure (
     id SERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL UNIQUE,
     description TEXT NOT NULL
@@ -15,5 +15,5 @@ CREATE TABLE logs.Log (
     procedure_id INTEGER,
     entry_parameters TEXT NOT NULL,
     result TEXT NOT NULL,
-    FOREIGN KEY (procedure_id) REFERENCES logs.Procedures(id)
+    FOREIGN KEY (procedure_id) REFERENCES logs.Procedure(id)
 ) TABLESPACE operational_tablespace;

@@ -25,7 +25,7 @@ INSERT INTO events.City (name, province_id) VALUES ('Madrid', 1),
                                                    ('Vigo', 2);
 
 -- Load initial procedures
-INSERT INTO logs.Procedures (name, description) VALUES ('create_location', 'Creates a new location'),
+INSERT INTO logs.Procedure (name, description) VALUES ('create_location', 'Creates a new location'),
                                                        ('update_location', 'Updates a location'),
                                                        ('delete_location', 'Deletes a location'),
                                                        ('create_organizer', 'Creates a new organizer'),

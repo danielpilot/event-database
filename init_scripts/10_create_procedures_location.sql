@@ -26,7 +26,7 @@ BEGIN
             );
 
     BEGIN
-        SELECT id INTO _procedure_id FROM logs.Procedures WHERE name = 'create_location';
+        SELECT id INTO _procedure_id FROM logs.Procedure WHERE name = 'create_location';
 
         IF _procedure_id IS NULL THEN
             RAISE EXCEPTION 'Procedure create_location is not registered in the procedures table';
@@ -78,7 +78,7 @@ BEGIN
             );
 
     BEGIN
-        SELECT id INTO _procedure_id FROM logs.Procedures WHERE name = 'update_location';
+        SELECT id INTO _procedure_id FROM logs.Procedure WHERE name = 'update_location';
 
         IF _procedure_id IS NULL THEN
             RAISE EXCEPTION 'Procedure update_location is not registered in
@@ -129,7 +129,7 @@ DECLARE
 BEGIN
     _entry_parameters := format('ID: %s', _id);
 
-    SELECT id INTO _procedure_id FROM logs.Procedures WHERE name = 'delete_location';
+    SELECT id INTO _procedure_id FROM logs.Procedure WHERE name = 'delete_location';
 
     BEGIN
         IF _procedure_id IS NULL THEN

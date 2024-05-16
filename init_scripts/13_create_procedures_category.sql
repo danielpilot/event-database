@@ -14,7 +14,7 @@ BEGIN
     _entry_parameters := format('Name: %s | Parent Category ID: %s', _name, _parent_category_id);
 
     BEGIN
-        SELECT id INTO _procedure_id FROM logs.Procedures WHERE name = 'create_category';
+        SELECT id INTO _procedure_id FROM logs.Procedure WHERE name = 'create_category';
 
         IF _procedure_id IS NULL THEN
             RAISE EXCEPTION 'Procedure create_category is not registered in the procedures table';
@@ -61,7 +61,7 @@ BEGIN
     _entry_parameters := format('ID: %s | Name: %s | Parent Category ID: %s', _id, _name, _parent_category_id);
 
     BEGIN
-        SELECT id INTO _procedure_id FROM logs.Procedures WHERE name = 'update_category';
+        SELECT id INTO _procedure_id FROM logs.Procedure WHERE name = 'update_category';
 
         IF _procedure_id IS NULL THEN
             RAISE EXCEPTION 'Procedure update_category is not registered in the procedures table';
@@ -112,7 +112,7 @@ BEGIN
     _entry_parameters := format('ID: %s', _id);
 
     BEGIN
-        SELECT id INTO _procedure_id FROM logs.Procedures WHERE name = 'delete_category';
+        SELECT id INTO _procedure_id FROM logs.Procedure WHERE name = 'delete_category';
 
         IF _procedure_id IS NULL THEN
             RAISE EXCEPTION 'Procedure delete_category is not registered in the procedures table';
