@@ -77,10 +77,11 @@ CREATE FUNCTION events.update_transaction(
 ) RETURNS TEXT AS
 $$
 DECLARE
-    _entry_parameters TEXT;
-    _procedure_id     INTEGER;
-    _result           TEXT;
-    _maximum_per_sale events.Event_With_Sales.maximum_per_sale%type;
+    _entry_parameters  TEXT;
+    _procedure_id      INTEGER;
+    _result            TEXT;
+    _maximum_per_sale  events.Event_With_Sales.maximum_per_sale%type;
+    _message_not_found TEXT;
 BEGIN
     _entry_parameters := format(
             'Event ID: %s | User ID: %s | Unit Price: %s | Quantity: %s | Reference: %s',
@@ -110,12 +111,21 @@ BEGIN
             RAISE EXCEPTION 'Quantity %" exceeds the maximum per sale limit', _quantity;
         END IF;
 
+        IF NOT EXISTS (SELECT 1 FROM events.User WHERE id = _user_id) THEN
+            RAISE EXCEPTION 'User "%" does not exist', _user_id;
+        END IF;
+
         UPDATE events.Transaction
         SET unit_price = _unit_price,
             quantity   = _quantity,
             reference  = _reference
         WHERE event_id = _event_id
           AND user_id = _user_id;
+
+        IF NOT FOUND THEN
+            _message_not_found = format('Transaction for event "%s" and user "%s" does not exist', _event_id, _user_id);
+            RAISE EXCEPTION '%', _message_not_found;
+        END IF;
 
         _result := 'OK';
     EXCEPTION

@@ -53,9 +53,10 @@ CREATE FUNCTION events.delete_event_favorite(
 ) RETURNS TEXT AS
 $$
 DECLARE
-    _entry_parameters TEXT;
-    _procedure_id     INTEGER;
-    _result           TEXT;
+    _entry_parameters  TEXT;
+    _procedure_id      INTEGER;
+    _result            TEXT;
+    _message_not_found TEXT;
 BEGIN
     _entry_parameters := format(
             'Event ID: %s | User ID: %s',
@@ -73,6 +74,11 @@ BEGIN
         FROM events.Event_Favorite
         WHERE event_id = _event_id
           AND user_id = _user_id;
+
+        IF NOT FOUND THEN
+            _message_not_found = format('Favorite for event "%s" and user "%s" does not exist', _event_id, _user_id);
+            RAISE EXCEPTION '%', _message_not_found;
+        END IF;
 
         _result := 'OK';
     EXCEPTION
