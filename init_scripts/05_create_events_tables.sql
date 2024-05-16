@@ -49,7 +49,8 @@ CREATE TABLE events.Category (
     id SERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL UNIQUE,
     parent_category INTEGER,
-    FOREIGN KEY (parent_category) REFERENCES events.Category(id)
+    FOREIGN KEY (parent_category) REFERENCES events.Category(id) ON DELETE SET NULL,
+    UNIQUE (name, parent_category)
 ) TABLESPACE operational_tablespace;
 
 -- Create organizer table
@@ -67,7 +68,7 @@ CREATE TABLE events.Organizer_Contact (
     email VARCHAR(255) NOT NULL UNIQUE,
     telephone VARCHAR(20),
     PRIMARY KEY (name, organizer_id),
-    FOREIGN KEY (organizer_id) REFERENCES events.Organizer(id)
+    FOREIGN KEY (organizer_id) REFERENCES events.Organizer(id) ON DELETE CASCADE
 ) TABLESPACE operational_tablespace;
 
 -- Create event table
@@ -82,6 +83,7 @@ CREATE TABLE events.Event (
     image VARCHAR(255),
     event_status BOOLEAN NOT NULL,
     event_published BOOLEAN NOT NULL,
+    event_has_sales BOOLEAN NOT NULL,
     comments BOOLEAN NOT NULL,
     organizer_id INTEGER NOT NULL,
     location_id INTEGER NOT NULL,
@@ -96,8 +98,9 @@ CREATE TABLE events.Event_With_Sales (
     id SERIAL PRIMARY KEY,
     event_id INTEGER NOT NULL,
     capacity SMALLINT NOT NULL,
+    sales SMALLINT DEFAULT 0,
     maximum_per_sale SMALLINT NOT NULL,
-    FOREIGN KEY (event_id) REFERENCES events.Event(id)
+    FOREIGN KEY (event_id) REFERENCES events.Event(id) ON DELETE CASCADE
 ) TABLESPACE operational_tablespace;
 
 -- Create event category relation table
@@ -105,19 +108,19 @@ CREATE TABLE events.Event_Has_Category (
     event_id INTEGER NOT NULL,
     category_id INTEGER NOT NULL,
     PRIMARY KEY (event_id, category_id),
-    FOREIGN KEY (event_id) REFERENCES events.Event(id),
+    FOREIGN KEY (event_id) REFERENCES events.Event(id) ON DELETE CASCADE,
     FOREIGN KEY (category_id) REFERENCES events.Category(id)
 ) TABLESPACE operational_tablespace;
 
 -- Create event change table
 CREATE TABLE events.Event_Change (
-    id SERIAL NOT NULL,
+    id BIGSERIAL NOT NULL,
     event_id INTEGER NOT NULL,
     type VARCHAR(30) NOT NULL CHECK ( type IN ('Delayed', 'Cancelled', 'Location Change', 'Price Change', 'Other') ),
     date TIMESTAMP NOT NULL,
     description TEXT NOT NULL,
     PRIMARY KEY (id, event_id),
-    FOREIGN KEY (event_id) REFERENCES events.Event(id)
+    FOREIGN KEY (event_id) REFERENCES events.Event(id) ON DELETE CASCADE
 ) TABLESPACE operational_tablespace;
 
 -- Create user table
@@ -135,8 +138,8 @@ CREATE TABLE events.Event_Favorite (
     event_id INTEGER NOT NULL,
     user_id INTEGER NOT NULL,
     PRIMARY KEY (event_id, user_id),
-    FOREIGN KEY (event_id) REFERENCES events.Event(id),
-    FOREIGN KEY (user_id) REFERENCES events.User(id)
+    FOREIGN KEY (event_id) REFERENCES events.Event(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES events.User(id) ON DELETE CASCADE
 ) TABLESPACE operational_tablespace;
 
 -- Create rating table
@@ -147,10 +150,11 @@ CREATE TABLE events.Rating (
     comment TEXT NOT NULL,
     published BOOLEAN NOT NULL,
     PRIMARY KEY (event_id, user_id),
-    FOREIGN KEY (event_id) REFERENCES events.Event(id),
-    FOREIGN KEY (user_id) REFERENCES events.User(id)
+    FOREIGN KEY (event_id) REFERENCES events.Event(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES events.User(id) ON DELETE CASCADE
 ) TABLESPACE operational_tablespace;
 
+-- Create transactions table
 CREATE TABLE events.Transaction (
     event_id INTEGER NOT NULL,
     user_id INTEGER NOT NULL,
@@ -158,6 +162,6 @@ CREATE TABLE events.Transaction (
     quantity SMALLINT NOT NULL,
     reference VARCHAR(5) NOT NULL UNIQUE,
     PRIMARY KEY (event_id, user_id),
-    FOREIGN KEY (event_id) REFERENCES events.Event(id),
+    FOREIGN KEY (event_id) REFERENCES events.Event_With_Sales(id),
     FOREIGN KEY (user_id) REFERENCES events.User(id)
 ) TABLESPACE operational_tablespace;
