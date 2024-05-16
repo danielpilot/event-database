@@ -265,7 +265,7 @@ BEGIN
         _result := 'OK';
     EXCEPTION
         WHEN foreign_key_violation THEN
-            _result := format('ERROR: Unable to remove event with sales with related transactions');
+            _result := 'ERROR: Unable to remove event with sales with related transactions';
         WHEN raise_exception THEN
             _result := format('ERROR: %s', SQLERRM);
     END;
