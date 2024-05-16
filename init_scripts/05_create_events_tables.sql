@@ -3,8 +3,7 @@
 -- Create country table
 CREATE TABLE events.Country (
     id SMALLSERIAL PRIMARY KEY,
-    name VARCHAR(100) NOT NULL,
-    CONSTRAINT country_name_unique UNIQUE (name)
+    name VARCHAR(100) NOT NULL UNIQUE
 ) TABLESPACE operational_tablespace;
 
 -- Create region table
@@ -47,7 +46,7 @@ CREATE INDEX idx_location ON events.Location(latitude, longitude);
 -- Create category table
 CREATE TABLE events.Category (
     id SERIAL PRIMARY KEY,
-    name VARCHAR(255) NOT NULL UNIQUE,
+    name VARCHAR(255) NOT NULL,
     parent_category INTEGER,
     FOREIGN KEY (parent_category) REFERENCES events.Category(id) ON DELETE SET NULL,
     UNIQUE (name, parent_category)

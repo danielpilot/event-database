@@ -23,7 +23,7 @@ BEGIN
             _published);
 
     BEGIN
-        SELECT id INTO _procedure_id FROM logs.Procedures WHERE name = 'create_rating';
+        SELECT id INTO _procedure_id FROM logs.Procedure WHERE name = 'create_rating';
 
         IF _procedure_id IS NULL THEN
             RAISE EXCEPTION 'Procedure create_rating is not registered in the procedures table';
@@ -77,7 +77,7 @@ BEGIN
             _published);
 
     BEGIN
-        SELECT id INTO _procedure_id FROM logs.Procedures WHERE name = 'update_rating';
+        SELECT id INTO _procedure_id FROM logs.Procedure WHERE name = 'update_rating';
 
         IF _procedure_id IS NULL THEN
             RAISE EXCEPTION 'Procedure update_rating is not registered in the procedures table';
@@ -132,7 +132,7 @@ BEGIN
     _entry_parameters := format('Event ID: %s | User ID: %s', _event_id, _user_id);
 
     BEGIN
-        SELECT id INTO _procedure_id FROM logs.Procedures WHERE name = 'delete_rating';
+        SELECT id INTO _procedure_id FROM logs.Procedure WHERE name = 'delete_rating';
 
         IF _procedure_id IS NULL THEN
             RAISE EXCEPTION 'Procedure delete_rating is not registered in the procedures table';

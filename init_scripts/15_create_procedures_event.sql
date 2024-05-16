@@ -64,7 +64,7 @@ BEGIN
             _formatted_event_sales_data);
 
     BEGIN
-        SELECT id INTO _procedure_id FROM logs.Procedures WHERE name = 'create_event';
+        SELECT id INTO _procedure_id FROM logs.Procedure WHERE name = 'create_event';
 
         IF _procedure_id IS NULL THEN
             RAISE EXCEPTION 'Procedure create_event is not registered in the procedures table';
@@ -195,7 +195,7 @@ BEGIN
             _formatted_event_sales_data);
 
     BEGIN
-        SELECT id INTO _procedure_id FROM logs.Procedures WHERE name = 'update_event';
+        SELECT id INTO _procedure_id FROM logs.Procedure WHERE name = 'update_event';
 
         IF _procedure_id IS NULL THEN
             RAISE EXCEPTION 'Procedure update_event is not registered in the procedures table';
@@ -290,7 +290,7 @@ BEGIN
     _entry_parameters := format('ID: %s', _id);
 
     BEGIN
-        SELECT id INTO _procedure_id FROM logs.Procedures WHERE name = 'delete_event';
+        SELECT id INTO _procedure_id FROM logs.Procedure WHERE name = 'delete_event';
 
         IF _procedure_id IS NULL THEN
             RAISE EXCEPTION 'Procedure delete_event is not registered in the procedures table';
