@@ -83,6 +83,7 @@ CREATE TABLE events.Event (
     image VARCHAR(255),
     event_status BOOLEAN NOT NULL,
     event_published BOOLEAN NOT NULL,
+    event_has_sales BOOLEAN NOT NULL,
     comments BOOLEAN NOT NULL,
     organizer_id INTEGER NOT NULL,
     location_id INTEGER NOT NULL,

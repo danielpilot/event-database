@@ -33,6 +33,7 @@ DECLARE
     _valid_categories_count     INTEGER;
     _category_id                INTEGER;
     _formatted_event_sales_data TEXT;
+    _event_has_sales            BOOLEAN;
 BEGIN
     _formatted_event_sales_data := 'NULL';
 
@@ -79,6 +80,11 @@ BEGIN
             RAISE EXCEPTION 'Some categories do not exist';
         END IF;
 
+        _event_has_sales := false;
+        IF _event_sales_data IS NOT NULL THEN
+            _event_has_sales := true;
+        END IF;
+
         -- Create event
         INSERT INTO events.Event (name,
                                   start_date,
@@ -89,6 +95,7 @@ BEGIN
                                   image,
                                   event_status,
                                   event_published,
+                                  event_has_sales,
                                   comments,
                                   organizer_id,
                                   location_id)
@@ -101,6 +108,7 @@ BEGIN
                 _image,
                 _event_status,
                 _event_published,
+                _event_has_sales,
                 _comments,
                 _organizer_id,
                 _location_id)
@@ -157,6 +165,7 @@ DECLARE
     _valid_categories_count     INTEGER;
     _category_id                INTEGER;
     _formatted_event_sales_data TEXT;
+    _event_has_sales            BOOLEAN;
 BEGIN
     IF _event_sales_data IS NOT NULL THEN
         _formatted_event_sales_data := format(
@@ -202,6 +211,11 @@ BEGIN
             RAISE EXCEPTION 'Some categories do not exist';
         END IF;
 
+        _event_has_sales := false;
+        IF _event_sales_data IS NOT NULL THEN
+            _event_has_sales := true;
+        END IF;
+
         -- Create event
         UPDATE events.Event
         SET name            = _name,
@@ -214,6 +228,7 @@ BEGIN
             event_status    = _event_status,
             event_published = _event_published,
             comments        = _comments,
+            event_has_sales = _event_has_sales,
             organizer_id    = _organizer_id,
             location_id     = _location_id
         WHERE id = _id;
