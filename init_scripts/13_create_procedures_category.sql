@@ -35,7 +35,7 @@ BEGIN
             _result := format('ERROR: Category with name "%s" already exists under the specified parent', _name);
         WHEN foreign_key_violation THEN
             _result := format('ERROR: Category parent with ID "%s" not found', _parent_category_id);
-        WHEN raise_exception THEN
+        WHEN OTHERS THEN
             _result := format('ERROR: %s', SQLERRM);
     END;
 
@@ -88,7 +88,7 @@ BEGIN
             _result := format('ERROR: Category with name "%s" already exists under specified parent', _name);
         WHEN foreign_key_violation THEN
             _result := format('ERROR: Category parent with ID "%s" not found', _parent_category_id);
-        WHEN raise_exception THEN
+        WHEN OTHERS THEN
             _result := format('ERROR: %s', SQLERRM);
     END;
 
@@ -130,7 +130,7 @@ BEGIN
     EXCEPTION
         WHEN foreign_key_violation THEN
             _result := format('ERROR: Category "%s" has related events', _id);
-        WHEN raise_exception THEN
+        WHEN OTHERS THEN
             _result := format('ERROR: %s', SQLERRM);
     END;
 

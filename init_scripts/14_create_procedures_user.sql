@@ -30,7 +30,7 @@ BEGIN
     EXCEPTION
         WHEN unique_violation THEN
             _result := format('ERROR: User with email "%s" already exists', _email);
-        WHEN raise_exception THEN
+        WHEN OTHERS THEN
             _result := format('ERROR: %s', SQLERRM);
     END;
 
@@ -88,7 +88,7 @@ BEGIN
     EXCEPTION
         WHEN unique_violation THEN
             _result := format('ERROR: User with email "%s" already exists', _email);
-        WHEN raise_exception THEN
+        WHEN OTHERS THEN
             _result := format('ERROR: %s', SQLERRM);
     END;
 
@@ -130,7 +130,7 @@ BEGIN
     EXCEPTION
         WHEN foreign_key_violation THEN
             _result := 'ERROR: User has related transactions';
-        WHEN raise_exception THEN
+        WHEN OTHERS THEN
             _result := format('ERROR: %s', SQLERRM);
     END;
 

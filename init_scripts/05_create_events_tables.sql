@@ -154,6 +154,7 @@ CREATE TABLE events.Rating (
     FOREIGN KEY (user_id) REFERENCES events.User(id) ON DELETE CASCADE
 ) TABLESPACE operational_tablespace;
 
+-- Create transactions table
 CREATE TABLE events.Transaction (
     event_id INTEGER NOT NULL,
     user_id INTEGER NOT NULL,

@@ -36,7 +36,7 @@ BEGIN
             _result := 'ERROR: Event does not exist';
         WHEN check_violation THEN
             _result := format('ERROR: Invalid event change type "%s"', _type);
-        WHEN raise_exception THEN
+        WHEN OTHERS THEN
             _result := format('ERROR: %s', SQLERRM);
     END;
 
@@ -93,7 +93,7 @@ BEGIN
             _result := 'ERROR: Event does not exist';
         WHEN check_violation THEN
             _result := format('ERROR: Invalid event change type "%s"', _type);
-        WHEN raise_exception THEN
+        WHEN OTHERS THEN
             _result := format('ERROR: %s', SQLERRM);
     END;
 
@@ -133,7 +133,7 @@ BEGIN
 
         _result := 'OK';
     EXCEPTION
-        WHEN raise_exception THEN
+        WHEN OTHERS THEN
             _result := format('ERROR: %s', SQLERRM);
     END;
 

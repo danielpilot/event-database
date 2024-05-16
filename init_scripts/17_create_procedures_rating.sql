@@ -42,7 +42,7 @@ BEGIN
 
         _result := 'OK';
     EXCEPTION
-        WHEN raise_exception THEN
+        WHEN OTHERS THEN
             _result := format('ERROR: %s', SQLERRM);
     END;
 
@@ -105,7 +105,7 @@ BEGIN
 
         _result := 'OK';
     EXCEPTION
-        WHEN raise_exception THEN
+        WHEN OTHERS THEN
             _result := format('ERROR: %s', SQLERRM);
     END;
 
@@ -150,7 +150,7 @@ BEGIN
 
         _result := 'OK';
     EXCEPTION
-        WHEN raise_exception THEN
+        WHEN OTHERS THEN
             _result := format('ERROR: %s', SQLERRM);
     END;
 

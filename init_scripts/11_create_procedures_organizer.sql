@@ -37,7 +37,7 @@ BEGIN
             _result := format('ERROR: Email "%s"already exists', _email);
         WHEN check_violation THEN
             _result := format('ERROR: Invalid organizer type "%s"', _type);
-        WHEN raise_exception THEN
+        WHEN OTHERS THEN
             _result := format('ERROR: %s', SQLERRM);
     END;
 
@@ -94,7 +94,7 @@ BEGIN
             _result := format('ERROR: Email "%s" already assigned to another user', _email);
         WHEN check_violation THEN
             _result := format('ERROR: Invalid organizer type "%s"', _type);
-        WHEN raise_exception THEN
+        WHEN OTHERS THEN
             _result := format('ERROR: %s', SQLERRM);
     END;
 
@@ -133,7 +133,7 @@ BEGIN
     EXCEPTION
         WHEN foreign_key_violation THEN
             _result := format('Organizer "%s" has related events', _id);
-        WHEN raise_exception THEN
+        WHEN OTHERS THEN
             _result := format('ERROR: %s', SQLERRM);
     END;
 

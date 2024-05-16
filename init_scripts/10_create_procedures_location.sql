@@ -39,7 +39,7 @@ BEGIN
     EXCEPTION
         WHEN foreign_key_violation THEN
             _result := format('ERROR: City "%s" does not exist', _city_id);
-        WHEN raise_exception THEN
+        WHEN OTHERS THEN
             _result := format('ERROR: %s', SQLERRM);
     END;
 
@@ -103,7 +103,7 @@ BEGIN
 
         _result := 'OK';
     EXCEPTION
-        WHEN raise_exception THEN
+        WHEN OTHERS THEN
             _result := format('ERROR: %s', SQLERRM);
     END;
 
@@ -145,7 +145,7 @@ BEGIN
     EXCEPTION
         WHEN foreign_key_violation THEN
             _result := format('Location "%s" has related events', _id);
-        WHEN raise_exception THEN
+        WHEN OTHERS THEN
             _result := format('ERROR: %s', SQLERRM);
     END;
 
