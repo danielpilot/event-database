@@ -98,6 +98,7 @@ CREATE TABLE events.Event_With_Sales (
     id SERIAL PRIMARY KEY,
     event_id INTEGER NOT NULL,
     capacity SMALLINT NOT NULL,
+    sales SMALLINT DEFAULT 0,
     maximum_per_sale SMALLINT NOT NULL,
     FOREIGN KEY (event_id) REFERENCES events.Event(id) ON DELETE CASCADE
 ) TABLESPACE operational_tablespace;
