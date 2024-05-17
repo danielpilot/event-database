@@ -27,7 +27,7 @@ BEGIN
         RAISE EXCEPTION 'Event sales are closed';
     END IF;
 
-    RETURN NEW;
+    RETURN NULL;
 END;
 $$ LANGUAGE plpgsql;
 
@@ -66,7 +66,7 @@ BEGIN
         RAISE EXCEPTION 'Event sales are closed';
     END IF;
 
-    RETURN NEW;
+    RETURN NULL;
 END;
 $$ LANGUAGE plpgsql;
 
@@ -84,7 +84,7 @@ BEGIN
     SET sales = sales + NEW.quantity
     WHERE id = NEW.event_id;
 
-    RETURN NEW;
+    RETURN NULL;
 END;
 $$ LANGUAGE plpgsql;
 
@@ -102,7 +102,7 @@ BEGIN
     SET sales = sales + NEW.quantity - OLD.quantity
     WHERE id = NEW.event_id;
 
-    RETURN NEW;
+    RETURN NULL;
 END;
 $$ LANGUAGE plpgsql;
 
@@ -120,7 +120,7 @@ BEGIN
     SET sales = sales - OLD.quantity
     WHERE id = OLD.event_id;
 
-    RETURN OLD;
+    RETURN NULL;
 END;
 $$ LANGUAGE plpgsql;
 
@@ -129,3 +129,27 @@ CREATE TRIGGER trg_update_sales_after_delete
     ON events.transaction
     FOR EACH ROW
 EXECUTE PROCEDURE update_sales_after_delete();
+
+-- Disable the event sales when conditions are met
+CREATE FUNCTION check_event_sales_status() RETURNS TRIGGER AS
+$$
+BEGIN
+    IF NOT NEW.event_has_sales THEN
+        RETURN NULL;
+    END IF;
+
+    IF NOT NEW.event_published OR NOT NEW.event_status THEN
+        UPDATE events.event
+        SET event_has_sales = false
+        WHERE id = NEW.id;
+    END IF;
+
+    RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_check_event_sales_status
+    AFTER INSERT OR UPDATE
+    ON events.event
+    FOR EACH ROW
+EXECUTE PROCEDURE check_event_sales_status();
