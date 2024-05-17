@@ -75,3 +75,57 @@ CREATE TRIGGER trg_check_transaction_conditions_before_update
     ON events.transaction
     FOR EACH ROW
 EXECUTE PROCEDURE check_transaction_conditions_before_update();
+
+-- Update sales after insert
+CREATE FUNCTION update_sales_after_insert() RETURNS TRIGGER AS
+$$
+BEGIN
+    UPDATE events.event_with_sales
+    SET sales = sales + NEW.quantity
+    WHERE id = NEW.event_id;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_update_sales_after_insert
+    AFTER INSERT
+    ON events.transaction
+    FOR EACH ROW
+EXECUTE PROCEDURE update_sales_after_insert();
+
+-- Update sales after update
+CREATE FUNCTION update_sales_after_update() RETURNS TRIGGER AS
+$$
+BEGIN
+    UPDATE events.event_with_sales
+    SET sales = sales + NEW.quantity - OLD.quantity
+    WHERE id = NEW.event_id;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_update_sales_after_update
+    AFTER UPDATE
+    ON events.transaction
+    FOR EACH ROW
+EXECUTE PROCEDURE update_sales_after_update();
+
+-- Delete sales after delete
+CREATE FUNCTION update_sales_after_delete() RETURNS TRIGGER AS
+$$
+BEGIN
+    UPDATE events.event_with_sales
+    SET sales = sales - OLD.quantity
+    WHERE id = OLD.event_id;
+
+    RETURN OLD;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_update_sales_after_delete
+    AFTER DELETE
+    ON events.transaction
+    FOR EACH ROW
+EXECUTE PROCEDURE update_sales_after_delete();
