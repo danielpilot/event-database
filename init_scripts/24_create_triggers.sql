@@ -1,7 +1,7 @@
 \c event_database;
 
 -- Check event capacity before insert
-CREATE FUNCTION check_transaction_conditions_before_insert() RETURNS trigger AS
+CREATE FUNCTION events.check_transaction_conditions_before_insert() RETURNS trigger AS
 $$
 DECLARE
     _capacity           SMALLINT;
@@ -35,10 +35,10 @@ CREATE TRIGGER trg_check_transaction_conditions_before_insert
     BEFORE INSERT
     ON events.transaction
     FOR EACH ROW
-EXECUTE PROCEDURE check_transaction_conditions_before_insert();
+EXECUTE PROCEDURE events.check_transaction_conditions_before_insert();
 
 -- Check event capacity on update
-CREATE FUNCTION check_transaction_conditions_before_update() RETURNS trigger AS
+CREATE FUNCTION events.check_transaction_conditions_before_update() RETURNS trigger AS
 $$
 DECLARE
     _capacity           SMALLINT;
@@ -74,10 +74,10 @@ CREATE TRIGGER trg_check_transaction_conditions_before_update
     BEFORE UPDATE
     ON events.transaction
     FOR EACH ROW
-EXECUTE PROCEDURE check_transaction_conditions_before_update();
+EXECUTE PROCEDURE events.check_transaction_conditions_before_update();
 
 -- Update sales after insert
-CREATE FUNCTION update_sales_after_insert() RETURNS TRIGGER AS
+CREATE FUNCTION events.update_sales_after_insert() RETURNS TRIGGER AS
 $$
 BEGIN
     UPDATE events.event_with_sales
@@ -92,10 +92,10 @@ CREATE TRIGGER trg_update_sales_after_insert
     AFTER INSERT
     ON events.transaction
     FOR EACH ROW
-EXECUTE PROCEDURE update_sales_after_insert();
+EXECUTE PROCEDURE events.update_sales_after_insert();
 
 -- Update sales after update
-CREATE FUNCTION update_sales_after_update() RETURNS TRIGGER AS
+CREATE FUNCTION events.update_sales_after_update() RETURNS TRIGGER AS
 $$
 BEGIN
     UPDATE events.event_with_sales
@@ -110,10 +110,10 @@ CREATE TRIGGER trg_update_sales_after_update
     AFTER UPDATE
     ON events.transaction
     FOR EACH ROW
-EXECUTE PROCEDURE update_sales_after_update();
+EXECUTE PROCEDURE events.update_sales_after_update();
 
 -- Delete sales after delete
-CREATE FUNCTION update_sales_after_delete() RETURNS TRIGGER AS
+CREATE FUNCTION events.update_sales_after_delete() RETURNS TRIGGER AS
 $$
 BEGIN
     UPDATE events.event_with_sales
@@ -128,10 +128,10 @@ CREATE TRIGGER trg_update_sales_after_delete
     AFTER DELETE
     ON events.transaction
     FOR EACH ROW
-EXECUTE PROCEDURE update_sales_after_delete();
+EXECUTE PROCEDURE events.update_sales_after_delete();
 
 -- Disable the event sales when conditions are met
-CREATE FUNCTION check_event_sales_status() RETURNS TRIGGER AS
+CREATE FUNCTION events.check_event_sales_status() RETURNS TRIGGER AS
 $$
 BEGIN
     IF NOT NEW.event_has_sales THEN
@@ -152,4 +152,59 @@ CREATE TRIGGER trg_check_event_sales_status
     AFTER INSERT OR UPDATE
     ON events.event
     FOR EACH ROW
-EXECUTE PROCEDURE check_event_sales_status();
+EXECUTE PROCEDURE events.check_event_sales_status();
+
+-- Add event change on event modification
+CREATE FUNCTION events.add_event_change_on_event_modification() RETURNS TRIGGER AS
+$$
+BEGIN
+    IF NEW.start_date > OLD.start_date THEN
+        CALL events.create_event_change(
+                NEW.id,
+                'Delayed',
+                NOW(),
+                format('The event has been delayed from %s to %s', OLD.start_date, NEW.start_date)
+             );
+    ELSIF NEW.start_date < OLD.start_date THEN
+        CALL events.create_event_change(
+                NEW.id,
+                'Other',
+                NOW(),
+                format('The event has been advanced from %s to %s', OLD.start_date, NEW.start_date)
+             );
+    END IF;
+
+    IF NEW.location_id != OLD.location_id THEN
+        CALL events.create_event_change(
+                NEW.id,
+                'Location Change',
+                NOW(),
+                format('The event has been moved from location "%s" to "%s"', OLD.location_id, NEW.location_id)
+             );
+    END IF;
+
+    IF NEW.price != OLD.price THEN
+        CALL events.create_event_change(
+                NEW.id,
+                'Price Change',
+                NOW(),
+                format('The event price has changed from "%s" to "%s"', OLD.price, NEW.price)
+             );
+    END IF;
+
+    IF NOT NEW.event_status AND NEW.event_status != OLD.event_status THEN
+        CALL events.create_event_change(
+                NEW.id,
+                'Cancelled',
+                NOW(),
+                'Event has been cancelled'
+             );
+    END IF;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_add_event_change_on_event_modification
+    AFTER UPDATE
+    ON events.event
+    FOR EACH ROW
+EXECUTE PROCEDURE events.add_event_change_on_event_modification();
