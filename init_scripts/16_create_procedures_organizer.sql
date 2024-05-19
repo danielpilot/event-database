@@ -34,7 +34,7 @@ BEGIN
         _result := 'OK';
     EXCEPTION
         WHEN unique_violation THEN
-            _result := format('ERROR: Email "%s"already exists', _email);
+            _result := format('ERROR: Email "%s" already exists', _email);
         WHEN check_violation THEN
             _result := format('ERROR: Invalid organizer type "%s"', _type);
         WHEN OTHERS THEN
@@ -125,6 +125,8 @@ BEGIN
             RAISE EXCEPTION 'Procedure delete_organizer is not registered in the procedures table';
         END IF;
 
+        DELETE FROM events.organizer WHERE id = _id;
+
         IF NOT FOUND THEN
             RAISE EXCEPTION 'Organizer "%" does not exist', _id;
         END IF;
@@ -132,7 +134,7 @@ BEGIN
         _result := 'OK';
     EXCEPTION
         WHEN foreign_key_violation THEN
-            _result := format('ERROR: Organizer "%s" has related events', _id);
+            _result := 'ERROR: Organizer has related events';
         WHEN OTHERS THEN
             _result := format('ERROR: %s', SQLERRM);
     END;
