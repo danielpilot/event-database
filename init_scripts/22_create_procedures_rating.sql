@@ -47,7 +47,7 @@ BEGIN
         _result := 'OK';
     EXCEPTION
         WHEN unique_violation THEN
-            _result := format('A rating already exists for user "%s" in event "%s"', _user_id, _event_id);
+            _result := format('ERROR: A rating already exists for user "%s" in event "%s"', _user_id, _event_id);
         WHEN OTHERS THEN
             _result := format('ERROR: %s', SQLERRM);
     END;

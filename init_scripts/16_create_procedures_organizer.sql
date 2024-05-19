@@ -132,7 +132,7 @@ BEGIN
         _result := 'OK';
     EXCEPTION
         WHEN foreign_key_violation THEN
-            _result := format('Organizer "%s" has related events', _id);
+            _result := format('ERROR: Organizer "%s" has related events', _id);
         WHEN OTHERS THEN
             _result := format('ERROR: %s', SQLERRM);
     END;

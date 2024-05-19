@@ -50,7 +50,7 @@ BEGIN
         END IF;
 
         IF EXISTS (SELECT 1 FROM events.transaction WHERE reference = _reference) THEN
-            RAISE EXCEPTION 'ERROR: Transaction with reference "%" already exists', _reference;
+            RAISE EXCEPTION 'Transaction with reference "%" already exists', _reference;
         END IF;
 
 
