@@ -10,7 +10,7 @@ DECLARE
     _available_capacity INTEGER;
     _event_has_sales    BOOLEAN;
 BEGIN
-    SELECT (ews.capacity, ews.sales, ews.event_id)
+    SELECT ews.capacity, ews.sales, ews.event_id
     INTO _capacity, _sales, _event_id
     FROM events.Event_With_Sales ews
     WHERE id = NEW.event_id;
@@ -27,7 +27,7 @@ BEGIN
         RAISE EXCEPTION 'Event sales are closed';
     END IF;
 
-    RETURN NULL;
+    RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
@@ -48,7 +48,7 @@ DECLARE
     _event_has_sales    BOOLEAN;
     _quantity_variation INTEGER;
 BEGIN
-    SELECT (ews.capacity, ews.sales, ews.event_id)
+    SELECT ews.capacity, ews.sales, ews.event_id
     INTO _capacity, _sales, _event_id
     FROM events.Event_With_Sales ews
     WHERE id = NEW.event_id;
@@ -66,7 +66,7 @@ BEGIN
         RAISE EXCEPTION 'Event sales are closed';
     END IF;
 
-    RETURN NULL;
+    RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
@@ -84,7 +84,7 @@ BEGIN
     SET sales = sales + NEW.quantity
     WHERE id = NEW.event_id;
 
-    RETURN NULL;
+    RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
@@ -102,7 +102,7 @@ BEGIN
     SET sales = sales + NEW.quantity - OLD.quantity
     WHERE id = NEW.event_id;
 
-    RETURN NULL;
+    RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
@@ -120,7 +120,7 @@ BEGIN
     SET sales = sales - OLD.quantity
     WHERE id = OLD.event_id;
 
-    RETURN NULL;
+    RETURN OLD;
 END;
 $$ LANGUAGE plpgsql;
 
@@ -144,7 +144,7 @@ BEGIN
         WHERE id = NEW.id;
     END IF;
 
-    RETURN NULL;
+    RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
