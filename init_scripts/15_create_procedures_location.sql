@@ -81,8 +81,7 @@ BEGIN
         SELECT id INTO _procedure_id FROM logs.Procedure WHERE name = 'update_location';
 
         IF _procedure_id IS NULL THEN
-            RAISE EXCEPTION 'Procedure update_location is not registered in
-                the procedures table';
+            RAISE EXCEPTION 'Procedure update_location is not registered in the procedures table';
         END IF;
 
         UPDATE events.location
@@ -143,7 +142,7 @@ BEGIN
         _result := 'OK';
     EXCEPTION
         WHEN foreign_key_violation THEN
-            _result := format('ERROR: Location "%s" has related events', _id);
+            _result := 'ERROR: Location has related events';
         WHEN OTHERS THEN
             _result := format('ERROR: %s', SQLERRM);
     END;
