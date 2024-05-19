@@ -60,12 +60,12 @@ SELECT is(events.create_organizer_contact(
                   '666666666'
           ),
           'ERROR: Contact already exists',
-          'create_organizer_contact must return error for existing email'
+          'create_organizer_contact must return error for duplicate user'
        );
 
 SELECT is((SELECT result FROM logs.Log ORDER BY id DESC LIMIT 1),
           'ERROR: Contact already exists',
-          'Create log entry for existing email'
+          'Create log entry for duplicate user'
        );
 
 -- Test case: organizer contact creation with existing email
