@@ -141,7 +141,7 @@ BEGIN
           AND organizer_id = _organizer_id;
 
         IF NOT FOUND THEN
-            RAISE EXCEPTION 'Organizer contact "%" does not exist', _organizer_id;
+            RAISE EXCEPTION 'Organizer contact does not exist';
         END IF;
 
         _result := 'OK';
