@@ -200,6 +200,8 @@ BEGIN
                 'Event has been cancelled'
              );
     END IF;
+
+    RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
