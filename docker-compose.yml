@@ -1,6 +1,6 @@
 services:
     db:
-        build: './docker/postgres'
+        build: .
         environment:
             POSTGRES_PASSWORD: root_event_password
         volumes:
