@@ -7,8 +7,9 @@ The purpose of the project is to create a database that stores events informatio
 This database is designed to be used by applications that track event and location data, and supports the implementation of a user system with ticketing functionality.
 
 ## Technologies used
-* **Database management system**: PostgreSQL. 
+* **Database management system**: PostgreSQL 14. 
 * **Programming languages**: SQL, PL/pgSQL
+* **Database testing**: pgTAP
 * **Containerization**: Docker
 
 ## Execution
@@ -16,4 +17,13 @@ This database is designed to be used by applications that track event and locati
 
 ```bash
 docker-compose up -d
+```
+
+## Testing
+Automatic testing has been implemented using pgTAP. You can run all the tests included in the project inside the container:
+
+```bash
+docker exec -it event_database_db_1 bash
+cd /app
+pg_prove -U postgres tests/*.sql
 ```
