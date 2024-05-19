@@ -24,6 +24,5 @@ Automatic testing has been implemented using pgTAP. You can run all the tests in
 
 ```bash
 docker exec -it event_database_db_1 bash
-cd /app
-pg_prove -U postgres tests/*.sql
+pg_prove -U postgres /app/tests/*.sql --verbose
 ```
