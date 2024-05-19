@@ -3,7 +3,7 @@
 SET SEARCH_PATH TO public, events;
 
 BEGIN;
-SELECT plan(8);
+SELECT plan(9);
 
 -- Test case: missing procedure entry
 DELETE
@@ -47,8 +47,8 @@ SELECT is((SELECT result FROM logs.Log ORDER BY id DESC LIMIT 1),
           'Create log entry for delete_country'
        );
 
-SELECT is((SELECT COUNT(*) FROM events.Country WHERE name = 'TestCountry'),
-          0,
+SELECT is((SELECT COUNT(*)::text FROM events.Country WHERE name = 'TestCountry'),
+          '0',
           'Country must be deleted from the table'
        );
 
