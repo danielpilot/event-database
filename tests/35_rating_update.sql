@@ -106,7 +106,7 @@ VALUES ((SELECT id::integer FROM events.Event WHERE name = 'TestEvent' LIMIT 1),
 SELECT is(events.update_rating(
                   (SELECT id::integer FROM events.Event WHERE name = 'TestEvent' LIMIT 1),
                   (SELECT id::integer FROM events.User WHERE email = 'test@test.com' LIMIT 1),
-                  4::smallint,
+                  3::smallint,
                   'UpdatedComment',
                   true
           ),
@@ -121,7 +121,9 @@ SELECT is((SELECT result FROM logs.Log ORDER BY id DESC LIMIT 1),
 
 SELECT is((SELECT COUNT(*)::text
            FROM events.Rating
-           WHERE event_id = (SELECT id FROM events.Event WHERE name = 'TestEvent')),
+           WHERE event_id = (SELECT id FROM events.Event WHERE name = 'TestEvent')
+             AND punctuation = 3
+             AND comment = 'UpdatedComment'),
           '1',
           'Rating must be updated in the Rating table'
        );
