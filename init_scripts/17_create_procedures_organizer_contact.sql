@@ -31,7 +31,7 @@ BEGIN
         END IF;
 
         IF EXISTS (SELECT 1 FROM events.organizer_contact WHERE email = _email) THEN
-            RAISE EXCEPTION 'ERROR: Email "%s" already exists', _email;
+            RAISE EXCEPTION 'Email "%" already exists', _email;
         END IF;
 
         INSERT INTO events.organizer_contact (name, organizer_id, email, telephone)
@@ -42,7 +42,7 @@ BEGIN
         WHEN foreign_key_violation THEN
             _result := format('ERROR: Organizer "%s" does not exist', _organizer_id);
         WHEN unique_violation THEN
-            _result := format('ERROR: Contact "%s" for organizer "%s" already exists', _name, _organizer_id);
+            _result := 'ERROR: Contact already exists';
         WHEN OTHERS THEN
             _result := format('ERROR: %s', SQLERRM);
     END;
@@ -141,7 +141,7 @@ BEGIN
           AND organizer_id = _organizer_id;
 
         IF NOT FOUND THEN
-            RAISE EXCEPTION 'Organizer contact "%" does not exist', _organizer_id;
+            RAISE EXCEPTION 'Organizer contact does not exist';
         END IF;
 
         _result := 'OK';

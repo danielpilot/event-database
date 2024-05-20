@@ -28,7 +28,7 @@ BEGIN
         _result := 'OK';
     EXCEPTION
         WHEN foreign_key_violation THEN
-            _result := format('Country "%s" does not exist', _country_id);
+            _result := format('ERROR: Country "%s" does not exist', _country_id);
         WHEN OTHERS THEN
             _result := format('ERROR: %s', SQLERRM);
     END;

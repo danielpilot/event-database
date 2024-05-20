@@ -42,7 +42,7 @@ BEGIN
         END IF;
 
         IF _quantity > _maximum_per_sale THEN
-            RAISE EXCEPTION 'Quantity %" exceeds the maximum per sale limit', _quantity;
+            RAISE EXCEPTION 'Quantity "%" exceeds the maximum per sale limit', _quantity;
         END IF;
 
         IF NOT EXISTS (SELECT 1 FROM events.User WHERE id = _user_id) THEN
@@ -50,7 +50,7 @@ BEGIN
         END IF;
 
         IF EXISTS (SELECT 1 FROM events.transaction WHERE reference = _reference) THEN
-            RAISE EXCEPTION 'ERROR: Transaction with reference "%" already exists', _reference;
+            RAISE EXCEPTION 'Transaction with reference "%" already exists', _reference;
         END IF;
 
 
@@ -60,7 +60,7 @@ BEGIN
         _result := 'OK';
     EXCEPTION
         WHEN unique_violation THEN
-            _result := format('ERROR: Transaction for user "%s" in event "%s" already exists', _user_id, _event_id);
+            _result := 'ERROR: Transaction already exists';
         WHEN OTHERS THEN
             _result := format('ERROR: %s', SQLERRM);
     END;
@@ -106,14 +106,14 @@ BEGIN
         SELECT maximum_per_sale
         INTO _maximum_per_sale
         FROM events.Event_With_Sales
-        WHERE event_id = _event_id;
+        WHERE id = _event_id;
 
         IF _maximum_per_sale IS NULL THEN
             RAISE EXCEPTION 'Event does not have sales enabled';
         END IF;
 
         IF _quantity > _maximum_per_sale THEN
-            RAISE EXCEPTION 'Quantity %" exceeds the maximum per sale limit', _quantity;
+            RAISE EXCEPTION 'Quantity "%" exceeds the maximum per sale limit', _quantity;
         END IF;
 
         IF NOT EXISTS (SELECT 1 FROM events.User WHERE id = _user_id) THEN
@@ -128,7 +128,7 @@ BEGIN
           AND user_id = _user_id;
 
         IF NOT FOUND THEN
-            _message_not_found = format('Transaction for event "%s" and user "%s" does not exist', _event_id, _user_id);
+            _message_not_found = 'Transaction does not exist';
             RAISE EXCEPTION '%', _message_not_found;
         END IF;
 
@@ -177,7 +177,7 @@ BEGIN
           AND user_id = _user_id;
 
         IF NOT FOUND THEN
-            _message_not_found = format('Transaction for event "%s" and user "%s" does not exist', _event_id, _user_id);
+            _message_not_found = 'Transaction does not exist';
             RAISE EXCEPTION '%', _message_not_found;
         END IF;
 

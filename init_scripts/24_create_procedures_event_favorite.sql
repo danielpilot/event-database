@@ -36,7 +36,7 @@ BEGIN
         _result := 'OK';
     EXCEPTION
         WHEN unique_violation THEN
-            _result := format('ERROR: Favorite of user "%s" for event "%s" already exists', _user_id, _event_id);
+            _result := 'ERROR: Favorite already exists';
         WHEN OTHERS THEN
             _result := format('ERROR: %s', SQLERRM);
     END;
@@ -78,7 +78,7 @@ BEGIN
           AND user_id = _user_id;
 
         IF NOT FOUND THEN
-            _message_not_found = format('Favorite for event "%s" and user "%s" does not exist', _event_id, _user_id);
+            _message_not_found = 'Favorite does not exist';
             RAISE EXCEPTION '%', _message_not_found;
         END IF;
 

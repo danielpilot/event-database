@@ -29,8 +29,8 @@ BEGIN
             RAISE EXCEPTION 'Procedure create_rating is not registered in the procedures table';
         END IF;
 
-        IF _punctuation > 5 THEN
-            RAISE EXCEPTION 'Punctuation should be less than or equal to 5';
+        IF _punctuation > 5 OR _punctuation < 0 THEN
+            RAISE EXCEPTION 'Punctuation must be less than or equal to 5 and greater than 0';
         END IF;
 
         IF NOT EXISTS (SELECT 1 FROM events.Event WHERE id = _event_id) THEN
@@ -47,7 +47,7 @@ BEGIN
         _result := 'OK';
     EXCEPTION
         WHEN unique_violation THEN
-            _result := format('A rating already exists for user "%s" in event "%s"', _user_id, _event_id);
+            _result := format('ERROR: A rating already exists for user "%s" in event "%s"', _user_id, _event_id);
         WHEN OTHERS THEN
             _result := format('ERROR: %s', SQLERRM);
     END;
@@ -85,8 +85,8 @@ BEGIN
     BEGIN
         SELECT id INTO _procedure_id FROM logs.Procedure WHERE name = 'update_rating';
 
-        IF _punctuation > 5 THEN
-            RAISE EXCEPTION 'Punctuation should be less than or equal to 5';
+        IF _punctuation > 5 OR _punctuation < 0 THEN
+            RAISE EXCEPTION 'Punctuation must be less than or equal to 5 and greater than 0';
         END IF;
 
         IF _procedure_id IS NULL THEN
