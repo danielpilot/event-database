@@ -47,7 +47,7 @@ VALUES ('TestEvent',
         0.0,
         true,
         true,
-        true,
+        false,
         true,
         (SELECT id FROM events.organizer WHERE name = 'TestOrganizer'),
         (SELECT id FROM events.Location WHERE name = 'TestLocation')),
@@ -65,46 +65,43 @@ VALUES ('TestEvent',
         (SELECT id FROM events.Location WHERE name = 'TestLocation'));
 
 INSERT INTO events.Event_With_Sales (event_id, capacity, maximum_per_sale)
-VALUES ((SELECT id::integer FROM events.Event WHERE name = 'TestEvent' LIMIT 1), 100, 10);
-
-INSERT INTO events.Event_With_Sales (event_id, capacity, maximum_per_sale)
 VALUES ((SELECT id::integer FROM events.Event WHERE name = 'TestEvent2' LIMIT 1), 100, 10);
 
--- Test case: checking if the transaction_create procedure is registered in the procedures table
+-- Test case: checking if the update_transaction procedure is registered in the procedures table
 DELETE
 FROM logs.Procedure
-WHERE name = 'create_transaction';
-SELECT is(events.create_transaction(
+WHERE name = 'update_transaction';
+SELECT is(events.update_transaction(
                   (SELECT id::integer
                    FROM events.event_with_sales
-                   WHERE event_id = (SELECT id::integer FROM events.event WHERE name = 'TestEvent' LIMIT 1)
+                   WHERE event_id = (SELECT id::integer FROM events.Event WHERE name = 'TestEvent' LIMIT 1)
                    LIMIT 1),
                   (SELECT id::integer FROM events.User WHERE email = 'test@test.com' LIMIT 1),
                   1.0,
                   1::smallint,
                   'TEST1'
           ),
-          'ERROR: Procedure create_transaction is not registered in the procedures table',
-          'Procedure transaction_create missing from the procedures table'
+          'ERROR: Procedure update_transaction is not registered in the procedures table',
+          'Procedure update_transaction missing from the procedures table'
        );
 
 SELECT is((SELECT result FROM logs.Log ORDER BY id DESC LIMIT 1),
-          'ERROR: Procedure create_transaction is not registered in the procedures table',
-          'Create log entry for missing create_transaction procedure'
+          'ERROR: Procedure update_transaction is not registered in the procedures table',
+          'Create log entry for missing update_transaction procedure'
        );
 
 INSERT INTO logs.procedure (name, description)
-VALUES ('create_transaction', '');
+VALUES ('update_transaction', '');
 
--- Test case: creating a transaction for an event with sales not opened
+-- Test case: updating a transaction for an event with sales not opened
 UPDATE events.Event
 SET event_has_sales = false
 WHERE name = 'TestEvent';
 
-SELECT is(events.create_transaction(
+SELECT is(events.update_transaction(
                   (SELECT id::integer
                    FROM events.event_with_sales
-                   WHERE event_id = (SELECT id::integer FROM events.event WHERE name = 'TestEvent' LIMIT 1)
+                   WHERE event_id = (SELECT id::integer FROM events.Event WHERE name = 'TestEvent' LIMIT 1)
                    LIMIT 1),
                   (SELECT id::integer FROM events.User WHERE email = 'test@test.com'),
                   12.0,
@@ -112,7 +109,7 @@ SELECT is(events.create_transaction(
                   'TEST1'
           ),
           'ERROR: Event does not have sales enabled',
-          'transaction_create must return error for event with sales not opened'
+          'update_transaction must return error for event with sales not opened'
        );
 
 SELECT is((SELECT result FROM logs.Log ORDER BY id DESC LIMIT 1),
@@ -124,11 +121,14 @@ UPDATE events.Event
 SET event_has_sales = true
 WHERE name = 'TestEvent';
 
--- Test case: creating a transaction with quantity exceeding the maximum per sale limit
-SELECT is(events.create_transaction(
+INSERT INTO events.Event_With_Sales (event_id, capacity, maximum_per_sale)
+VALUES ((SELECT id::integer FROM events.Event WHERE name = 'TestEvent' LIMIT 1), 100, 10);
+
+-- Test case: updating a transaction with quantity exceeding the maximum per sale limit
+SELECT is(events.update_transaction(
                   (SELECT id::integer
                    FROM events.event_with_sales
-                   WHERE event_id = (SELECT id::integer FROM events.event WHERE name = 'TestEvent' LIMIT 1)
+                   WHERE event_id = (SELECT id::integer FROM events.Event WHERE name = 'TestEvent' LIMIT 1)
                    LIMIT 1),
                   (SELECT id::integer FROM events.User WHERE email = 'test@test.com'),
                   12.0,
@@ -136,7 +136,7 @@ SELECT is(events.create_transaction(
                   'TEST1'
           ),
           'ERROR: Quantity "11" exceeds the maximum per sale limit',
-          'create_transaction must return error for quantity exceeding the maximum per sale limit'
+          'update_transaction must return error for quantity exceeding the maximum per sale limit'
        );
 
 SELECT is((SELECT result FROM logs.Log ORDER BY id DESC LIMIT 1),
@@ -144,11 +144,11 @@ SELECT is((SELECT result FROM logs.Log ORDER BY id DESC LIMIT 1),
           'Create log entry for quantity exceeding the maximum per sale limit'
        );
 
--- Test case: creating a transaction for a non-existent user
-SELECT is(events.create_transaction(
+-- Test case: updating a transaction for a non-existent user
+SELECT is(events.update_transaction(
                   (SELECT id::integer
                    FROM events.event_with_sales
-                   WHERE event_id = (SELECT id::integer FROM events.event WHERE name = 'TestEvent' LIMIT 1)
+                   WHERE event_id = (SELECT id::integer FROM events.Event WHERE name = 'TestEvent' LIMIT 1)
                    LIMIT 1),
                   -1::integer,
                   12.0,
@@ -156,7 +156,7 @@ SELECT is(events.create_transaction(
                   'TEST1'
           ),
           'ERROR: User "-1" does not exist',
-          'create_transaction must return error for non-existent user'
+          'update_transaction must return error for non-existent user'
        );
 
 SELECT is((SELECT result FROM logs.Log ORDER BY id DESC LIMIT 1),
@@ -164,7 +164,27 @@ SELECT is((SELECT result FROM logs.Log ORDER BY id DESC LIMIT 1),
           'Create log entry for non-existent user'
        );
 
--- Test case: creating a transaction with a reference that already exists
+-- Test case: updating a transaction for event when user does not have one
+SELECT is(events.update_transaction(
+                  (SELECT id::integer
+                   FROM events.event_with_sales
+                   WHERE event_id = (SELECT id::integer FROM events.Event WHERE name = 'TestEvent2' LIMIT 1)
+                   LIMIT 1),
+                  (SELECT id::integer FROM events.User WHERE email = 'test2@test.com'),
+                  12.0,
+                  2::smallint,
+                  'REF2'
+          ),
+          'ERROR: Transaction does not exist',
+          'update_transaction must return error for transaction that does not exist'
+       );
+
+SELECT is((SELECT result FROM logs.Log ORDER BY id DESC LIMIT 1),
+          'ERROR: Transaction does not exist',
+          'Create log entry for transaction that does not exist'
+       );
+
+-- Test case: updating a transaction with a reference that already exists
 INSERT INTO events.Transaction (event_id, user_id, unit_price, quantity, reference)
 VALUES ((SELECT id::integer
          FROM events.event_with_sales
@@ -175,10 +195,20 @@ VALUES ((SELECT id::integer
         2::smallint,
         'EXI1');
 
-SELECT is(events.create_transaction(
+INSERT INTO events.Transaction (event_id, user_id, unit_price, quantity, reference)
+VALUES ((SELECT id::integer
+         FROM events.event_with_sales
+         WHERE event_id = (SELECT id::integer FROM events.Event WHERE name = 'TestEvent' LIMIT 1)
+         LIMIT 1),
+        (SELECT id::integer FROM events.User WHERE email = 'test@test.com'),
+        12.0,
+        2::smallint,
+        'TEST1');
+
+SELECT is(events.update_transaction(
                   (SELECT id::integer
                    FROM events.event_with_sales
-                   WHERE event_id = (SELECT id::integer FROM events.event WHERE name = 'TestEvent' LIMIT 1)
+                   WHERE event_id = (SELECT id::integer FROM events.Event WHERE name = 'TestEvent' LIMIT 1)
                    LIMIT 1),
                   (SELECT id::integer FROM events.User WHERE email = 'test@test.com'),
                   12.0,
@@ -186,7 +216,7 @@ SELECT is(events.create_transaction(
                   'EXI1'
           ),
           'ERROR: Transaction with reference "EXI1" already exists',
-          'create_transaction must return error for reference that already exists'
+          'update_transaction must return error for reference that already exists'
        );
 
 SELECT is((SELECT result FROM logs.Log ORDER BY id DESC LIMIT 1),
@@ -194,31 +224,12 @@ SELECT is((SELECT result FROM logs.Log ORDER BY id DESC LIMIT 1),
           'Create log entry for reference that already exists'
        );
 
--- Test case: create a transaction for event when user already has one
-SELECT is(events.create_transaction(
+
+-- Test case: successful transaction update
+SELECT is(events.update_transaction(
                   (SELECT id::integer
                    FROM events.event_with_sales
-                   WHERE event_id = (SELECT id::integer FROM events.event WHERE name = 'TestEvent2' LIMIT 1)
-                   LIMIT 1),
-                  (SELECT id::integer FROM events.User WHERE email = 'test2@test.com'),
-                  12.0,
-                  2::smallint,
-                  'REF2'
-          ),
-          'ERROR: Transaction already exists',
-          'create_transaction must return error for transaction that already exists'
-       );
-
-SELECT is((SELECT result FROM logs.Log ORDER BY id DESC LIMIT 1),
-          'ERROR: Transaction already exists',
-          'Create log entry for transaction that already exists'
-       );
-
--- Test case: successful transaction creation
-SELECT is(events.create_transaction(
-                  (SELECT id::integer
-                   FROM events.event_with_sales
-                   WHERE event_id = (SELECT id::integer FROM events.event WHERE name = 'TestEvent' LIMIT 1)
+                   WHERE event_id = (SELECT id::integer FROM events.Event WHERE name = 'TestEvent' LIMIT 1)
                    LIMIT 1),
                   (SELECT id::integer FROM events.User WHERE email = 'test@test.com'),
                   12.0,
@@ -226,12 +237,12 @@ SELECT is(events.create_transaction(
                   'TEST1'
           ),
           'OK',
-          'transaction_create must return OK for a valid transaction creation'
+          'update_transaction must return OK for a valid transaction update'
        );
 
 SELECT is((SELECT result FROM logs.Log ORDER BY id DESC LIMIT 1),
           'OK',
-          'Create log entry for valid transaction creation'
+          'Create log entry for valid transaction update'
        );
 
 SELECT is((SELECT COUNT(*)::text
@@ -241,7 +252,7 @@ SELECT is((SELECT COUNT(*)::text
                              WHERE event_id = (SELECT id::integer FROM events.event WHERE name = 'TestEvent' LIMIT 1)
                              LIMIT 1)),
           '1',
-          'Transaction must be created in the Transaction table'
+          'Transaction must be updated in the Transaction table'
        );
 
 -- Finish the test
