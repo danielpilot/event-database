@@ -2,6 +2,10 @@
 
 SET SEARCH_PATH TO public, events;
 
+-- Begin tests
+BEGIN;
+SELECT plan(13);
+
 -- Populate database
 INSERT INTO events.User (name, surname, email, password, roles)
 VALUES ('test', 'test', 'test@test.com', 'password', 'user');
@@ -47,10 +51,6 @@ VALUES ('TestEvent',
         true,
         (SELECT id FROM events.organizer WHERE name = 'TestOrganizer'),
         (SELECT id FROM events.Location WHERE name = 'TestLocation'));
-
--- Begin tests
-BEGIN;
-SELECT plan(13);
 
 -- Test case: checking if the create_rating procedure is registered in the procedures table
 DELETE
