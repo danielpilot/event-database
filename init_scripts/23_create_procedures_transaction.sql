@@ -42,7 +42,7 @@ BEGIN
         END IF;
 
         IF _quantity > _maximum_per_sale THEN
-            RAISE EXCEPTION 'Quantity %" exceeds the maximum per sale limit', _quantity;
+            RAISE EXCEPTION 'Quantity "%" exceeds the maximum per sale limit', _quantity;
         END IF;
 
         IF NOT EXISTS (SELECT 1 FROM events.User WHERE id = _user_id) THEN
@@ -60,7 +60,7 @@ BEGIN
         _result := 'OK';
     EXCEPTION
         WHEN unique_violation THEN
-            _result := format('ERROR: Transaction for user "%s" in event "%s" already exists', _user_id, _event_id);
+            _result := 'ERROR: Transaction already exists';
         WHEN OTHERS THEN
             _result := format('ERROR: %s', SQLERRM);
     END;
