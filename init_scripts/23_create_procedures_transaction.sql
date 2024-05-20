@@ -177,7 +177,7 @@ BEGIN
           AND user_id = _user_id;
 
         IF NOT FOUND THEN
-            _message_not_found = format('Transaction for event "%s" and user "%s" does not exist', _event_id, _user_id);
+            _message_not_found = 'Transaction does not exist';
             RAISE EXCEPTION '%', _message_not_found;
         END IF;
 
