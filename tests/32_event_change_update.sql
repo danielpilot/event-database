@@ -150,7 +150,7 @@ SELECT is((SELECT result FROM logs.Log ORDER BY id DESC LIMIT 1),
 
 SELECT is((SELECT COUNT(*)::text
            FROM events.Event_change
-           WHERE event_id = (SELECT id FROM events.Event WHERE name = 'TestEvent')),
+           WHERE event_id = (SELECT id FROM events.Event WHERE name = 'TestEvent' AND type = 'Delayed')),
           '1',
           'Event change must be updated in the Event_Change table'
        );
