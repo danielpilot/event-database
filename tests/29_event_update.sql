@@ -3,7 +3,7 @@
 SET SEARCH_PATH TO public, events;
 
 BEGIN;
-SELECT plan(32);
+SELECT plan(33);
 
 -- Pre set data
 INSERT INTO events.organizer (name, email, type)
@@ -48,6 +48,39 @@ VALUES ('TestEvent',
         true,
         (SELECT id FROM events.organizer WHERE name = 'TestOrganizer'),
         (SELECT id FROM events.Location WHERE name = 'TestLocation'));
+
+-- Test case: missing procedure entry
+DELETE
+from logs.procedure
+WHERE name = 'update_event';
+SELECT is(events.update_event(
+                  1::integer,
+                  'TestEvent',
+                  NOW()::timestamp,
+                  NOW()::timestamp,
+                  '',
+                  '',
+                  0.0,
+                  '',
+                  true,
+                  true,
+                  false,
+                  (SELECT id::integer FROM events.organizer WHERE name = 'TestOrganizer' LIMIT 1),
+                  (SELECT id::integer FROM events.Location WHERE name = 'TestLocation' LIMIT 1),
+                  ARRAY []::integer[],
+                  NULL
+          ),
+          'ERROR: Procedure update_event is not registered in the procedures table',
+          'Procedure update_event missing from the procedures table'
+       );
+
+SELECT is((SELECT result FROM logs.Log ORDER BY id DESC LIMIT 1),
+          'ERROR: Procedure update_event is not registered in the procedures table',
+          'Create log entry for missing update_event procedure'
+       );
+
+INSERT INTO logs.procedure (name, description)
+VALUES ('update_event', '');
 
 -- Test case: updating an event that does not exist
 SELECT is(events.update_event(
@@ -123,11 +156,6 @@ SELECT is(events.update_event(
           ),
           'OK',
           'update_event must return OK for a valid event update without sales'
-       );
-
-SELECT is((SELECT result FROM logs.Log ORDER BY id DESC LIMIT 1),
-          'OK',
-          'Create log entry for valid event update without sales'
        );
 
 SELECT is((SELECT result FROM logs.Log ORDER BY id DESC LIMIT 1),
@@ -364,7 +392,9 @@ SELECT is((SELECT result FROM logs.Log ORDER BY id DESC LIMIT 1),
 
 SELECT is((SELECT COUNT(*)::text
            FROM events.event_with_sales
-           WHERE event_id = (SELECT id FROM events.Event WHERE name = 'TestEvent') AND capacity = 200 AND maximum_per_sale = 20),
+           WHERE event_id = (SELECT id FROM events.Event WHERE name = 'TestEvent')
+             AND capacity = 200
+             AND maximum_per_sale = 20),
           '1',
           'Event without sales must be created in the table'
        );

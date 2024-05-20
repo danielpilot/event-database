@@ -307,6 +307,7 @@ BEGIN
             RAISE EXCEPTION 'Event "%" does not exist', _id;
         END IF;
 
+        _result := 'OK';
     EXCEPTION
         WHEN foreign_key_violation THEN
             _result := 'ERROR: Event has related transactions';
