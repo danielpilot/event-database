@@ -122,7 +122,7 @@ SELECT is(events.create_rating(
 
 SELECT is((SELECT result FROM logs.Log ORDER BY id DESC LIMIT 1),
           'ERROR: Punctuation must be less than or equal to 5 and greater than 0',
-          'Create log entry for valid rating creation'
+          'Create log entry for punctuation greater than 5'
        );
 
 -- Test case: creating a rating with a punctuation smaller than 0
@@ -134,12 +134,12 @@ SELECT is(events.create_rating(
                   true
           ),
           'ERROR: Punctuation must be less than or equal to 5 and greater than 0',
-          'create_rating must return error on punctuation greater than 5'
+          'create_rating must return error on punctuation smaller than 0'
        );
 
 SELECT is((SELECT result FROM logs.Log ORDER BY id DESC LIMIT 1),
           'ERROR: Punctuation must be less than or equal to 5 and greater than 0',
-          'Create log entry for valid rating creation'
+          'Create log entry for punctuation smaller than 0'
        );
 
 -- Test case: successful rating creation
