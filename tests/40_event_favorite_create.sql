@@ -135,3 +135,9 @@ SELECT is((SELECT result FROM logs.Log ORDER BY id DESC LIMIT 1),
           'Create log entry for favorite that already exists'
        );
 
+
+-- Finish the test
+SELECT *
+FROM finish();
+
+ROLLBACK;
