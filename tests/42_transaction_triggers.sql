@@ -188,7 +188,8 @@ WHERE reference = 'TEST1';
 
 SELECT is((SELECT COUNT(*)::text
            FROM events.Transaction
-           WHERE reference = 'TEST1' AND quantity = 1),
+           WHERE reference = 'TEST1'
+             AND quantity = 1),
           '1',
           'Transaction must be updated');
 
@@ -217,7 +218,8 @@ SELECT is((SELECT sales
           'Update: Sales must be updated - Increase sales');
 
 -- Test case: check sales are updated on delete
-DELETE FROM events.Transaction
+DELETE
+FROM events.Transaction
 WHERE reference = 'TEST1';
 
 SELECT is((SELECT sales

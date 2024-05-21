@@ -207,7 +207,7 @@ CREATE TRIGGER trg_add_event_change_on_event_modification
 EXECUTE PROCEDURE events.add_event_change_on_event_modification();
 
 -- Avoid creating rating when comments are not enabled
-CREATE FUNCTION events.check_rating_conditions_before_insert() RETURNS TRIGGER AS
+CREATE FUNCTION events.check_rating_conditions_before_insert_or_update() RETURNS TRIGGER AS
 $$
 DECLARE
     _event_comment_enabled BOOLEAN;
@@ -225,8 +225,8 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER trg_check_rating_conditions_before_insert
+CREATE TRIGGER trg_check_rating_conditions_before_insert_or_update
     BEFORE INSERT OR UPDATE
     ON events.rating
     FOR EACH ROW
-EXECUTE PROCEDURE events.check_rating_conditions_before_insert();
+EXECUTE PROCEDURE events.check_rating_conditions_before_insert_or_update();
