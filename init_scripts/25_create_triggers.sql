@@ -159,13 +159,13 @@ CREATE FUNCTION events.add_event_change_on_event_modification() RETURNS TRIGGER 
 $$
 BEGIN
     IF NEW.start_date > OLD.start_date THEN
-        CALL events.create_event_change(
+        PERFORM events.create_event_change(
                 NEW.id,
                 'Delayed',
                 format('The event has been delayed from %s to %s', OLD.start_date, NEW.start_date)
              );
     ELSIF NEW.start_date < OLD.start_date THEN
-        CALL events.create_event_change(
+        PERFORM events.create_event_change(
                 NEW.id,
                 'Other',
                 format('The event has been advanced from %s to %s', OLD.start_date, NEW.start_date)
@@ -173,7 +173,7 @@ BEGIN
     END IF;
 
     IF NEW.location_id != OLD.location_id THEN
-        CALL events.create_event_change(
+        PERFORM events.create_event_change(
                 NEW.id,
                 'Location Change',
                 format('The event has been moved from location "%s" to "%s"', OLD.location_id, NEW.location_id)
@@ -181,7 +181,7 @@ BEGIN
     END IF;
 
     IF NEW.price != OLD.price THEN
-        CALL events.create_event_change(
+        PERFORM events.create_event_change(
                 NEW.id,
                 'Price Change',
                 format('The event price has changed from "%s" to "%s"', OLD.price, NEW.price)
@@ -189,7 +189,7 @@ BEGIN
     END IF;
 
     IF NOT NEW.event_status AND NEW.event_status != OLD.event_status THEN
-        CALL events.create_event_change(
+        PERFORM events.create_event_change(
                 NEW.id,
                 'Cancelled',
                 'Event has been cancelled'
