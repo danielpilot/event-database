@@ -138,6 +138,7 @@ VALUES ((SELECT id::integer
         2::integer,
         'TEST1');
 
+-- Test case: check if sales are updated on insert
 SELECT is((SELECT sales
            FROM events.event_with_sales
            WHERE event_id = (SELECT id::integer
@@ -147,6 +148,7 @@ SELECT is((SELECT sales
           '10',
           'Insert: Sales must be updated');
 
+-- Test case: check if transaction is created
 SELECT is((SELECT COUNT(*)::text
            FROM events.Transaction
            WHERE reference = 'TEST1'),
@@ -190,6 +192,7 @@ SELECT is((SELECT COUNT(*)::text
           '1',
           'Transaction must be updated');
 
+-- Test case: check sales are updated with decreased number on update
 SELECT is((SELECT sales
            FROM events.event_with_sales
            WHERE event_id = (SELECT id::integer
@@ -199,6 +202,7 @@ SELECT is((SELECT sales
           '9',
           'Update: Sales must be updated - Decrease sales');
 
+-- Test case: check sales are updated with increased number on update
 UPDATE events.Transaction
 SET quantity = 2
 WHERE reference = 'TEST1';
@@ -212,6 +216,7 @@ SELECT is((SELECT sales
           '10',
           'Update: Sales must be updated - Increase sales');
 
+-- Test case: check sales are updated on delete
 DELETE FROM events.Transaction
 WHERE reference = 'TEST1';
 
