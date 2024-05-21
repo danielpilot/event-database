@@ -3,7 +3,7 @@
 SET SEARCH_PATH TO public, events;
 
 BEGIN;
-SELECT plan(7);
+SELECT plan(11);
 
 INSERT INTO events.User (name, surname, email, password, roles)
 VALUES ('test', 'test', 'test@test.com', 'password', 'user');
@@ -104,7 +104,7 @@ SELECT throws_ok('insert_not_enough_tickets',
 -- Test case: check if not enough tickets exception is thrown
 UPDATE event_with_sales
 SET capacity = 10,
-    sales    = 9
+    sales    = 8
 WHERE event_id = (SELECT id::integer FROM events.event WHERE name = 'TestEvent2' LIMIT 1);
 
 PREPARE insert_not_enough_tickets_with_sales_count AS INSERT INTO events.Transaction (event_id, user_id, unit_price, quantity, reference)
@@ -117,7 +117,7 @@ PREPARE insert_not_enough_tickets_with_sales_count AS INSERT INTO events.Transac
                                                                LIMIT 1),
                                                               (SELECT id::integer FROM events.User WHERE email = 'test@test.com'),
                                                               1.0,
-                                                              2::integer,
+                                                              3::integer,
                                                               'TEST1');
 
 SELECT throws_ok('insert_not_enough_tickets_with_sales_count',
@@ -135,8 +135,17 @@ VALUES ((SELECT id::integer
          LIMIT 1),
         (SELECT id::integer FROM events.User WHERE email = 'test@test.com'),
         1.0,
-        1::integer,
+        2::integer,
         'TEST1');
+
+SELECT is((SELECT sales
+           FROM events.event_with_sales
+           WHERE event_id = (SELECT id::integer
+                             FROM events.event
+                             WHERE name = 'TestEvent2'
+                             LIMIT 1)),
+          '10',
+          'Insert: Sales must be updated');
 
 SELECT is((SELECT COUNT(*)::text
            FROM events.Transaction
@@ -172,15 +181,48 @@ SET event_has_sales = true
 WHERE name = 'TestEvent2';
 
 UPDATE events.Transaction
-SET quantity = 1,
-    reference = 'TEST2'
+SET quantity = 1
 WHERE reference = 'TEST1';
 
 SELECT is((SELECT COUNT(*)::text
            FROM events.Transaction
-           WHERE reference = 'TEST2'),
+           WHERE reference = 'TEST1' AND quantity = 1),
           '1',
           'Transaction must be updated');
+
+SELECT is((SELECT sales
+           FROM events.event_with_sales
+           WHERE event_id = (SELECT id::integer
+                             FROM events.event
+                             WHERE name = 'TestEvent2'
+                             LIMIT 1)),
+          '9',
+          'Update: Sales must be updated - Decrease sales');
+
+UPDATE events.Transaction
+SET quantity = 2
+WHERE reference = 'TEST1';
+
+SELECT is((SELECT sales
+           FROM events.event_with_sales
+           WHERE event_id = (SELECT id::integer
+                             FROM events.event
+                             WHERE name = 'TestEvent2'
+                             LIMIT 1)),
+          '10',
+          'Update: Sales must be updated - Increase sales');
+
+DELETE FROM events.Transaction
+WHERE reference = 'TEST1';
+
+SELECT is((SELECT sales
+           FROM events.event_with_sales
+           WHERE event_id = (SELECT id::integer
+                             FROM events.event
+                             WHERE name = 'TestEvent2'
+                             LIMIT 1)),
+          '8',
+          'Delete: Sales must be updated');
 
 -- Finish the test
 SELECT *
