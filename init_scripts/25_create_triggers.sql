@@ -163,13 +163,13 @@ BEGIN
                 NEW.id,
                 'Delayed',
                 format('The event has been delayed from %s to %s', OLD.start_date, NEW.start_date)
-             );
+                );
     ELSIF NEW.start_date < OLD.start_date THEN
         PERFORM events.create_event_change(
                 NEW.id,
                 'Other',
                 format('The event has been advanced from %s to %s', OLD.start_date, NEW.start_date)
-             );
+                );
     END IF;
 
     IF NEW.location_id != OLD.location_id THEN
@@ -177,7 +177,7 @@ BEGIN
                 NEW.id,
                 'Location Change',
                 format('The event has been moved from location "%s" to "%s"', OLD.location_id, NEW.location_id)
-             );
+                );
     END IF;
 
     IF NEW.price != OLD.price THEN
@@ -185,7 +185,7 @@ BEGIN
                 NEW.id,
                 'Price Change',
                 format('The event price has changed from "%s" to "%s"', OLD.price, NEW.price)
-             );
+                );
     END IF;
 
     IF NOT NEW.event_status AND NEW.event_status != OLD.event_status THEN
@@ -193,7 +193,7 @@ BEGIN
                 NEW.id,
                 'Cancelled',
                 'Event has been cancelled'
-             );
+                );
     END IF;
 
     RETURN NEW;
@@ -205,3 +205,28 @@ CREATE TRIGGER trg_add_event_change_on_event_modification
     ON events.event
     FOR EACH ROW
 EXECUTE PROCEDURE events.add_event_change_on_event_modification();
+
+-- Avoid creating rating when comments are not enabled
+CREATE FUNCTION events.check_rating_conditions_before_insert() RETURNS TRIGGER AS
+$$
+DECLARE
+    _event_comment_enabled BOOLEAN;
+BEGIN
+    SELECT comments
+    INTO _event_comment_enabled
+    FROM events.event
+    WHERE id = NEW.event_id;
+
+    IF NOT _event_comment_enabled THEN
+        RAISE EXCEPTION 'Comments are not enabled for this event';
+    END IF;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_check_rating_conditions_before_insert
+    BEFORE INSERT OR UPDATE
+    ON events.rating
+    FOR EACH ROW
+EXECUTE PROCEDURE events.check_rating_conditions_before_insert();
