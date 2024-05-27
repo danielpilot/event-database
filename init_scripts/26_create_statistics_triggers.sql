@@ -1,5 +1,46 @@
 \c event_database;
 
+-- Auxiliary statistics functions
+CREATE FUNCTION events.increase_statistic_rankings(
+    _event_id INTEGER,
+    _punctuation INTEGER
+) RETURNS VOID AS
+$$
+BEGIN
+    IF EXISTS (SELECT event_id FROM statistics.event_statistics WHERE rating.event_id = _event_id) THEN
+        UPDATE statistics.event_statistics
+        SET ratings_count  = ratings_count + 1,
+            average_rating = (total_rating + _punctuation::float) / (ratings_count + 1),
+            total_rating   = total_rating + _punctuation
+        WHERE event_id = _event_id;
+    ELSE
+        INSERT INTO statistics.event_statistics (event_id,
+                                                 ratings_count,
+                                                 average_rating,
+                                                 total_rating,
+                                                 sales,
+                                                 occupancy)
+        VALUES (_event_id, 1, _punctuation, _punctuation, 0, 0);
+    END IF;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE FUNCTION events.decrease_statistic_rankings(
+    _event_id INTEGER,
+    _punctuation INTEGER
+) RETURNS VOID AS
+$$
+BEGIN
+    IF EXISTS (SELECT event_id FROM statistics.event_statistics WHERE rating.event_id = _event_id) THEN
+        UPDATE statistics.event_statistics
+        SET ratings_count  = ratings_count - 1,
+            average_rating = (total_rating - _punctuation::float) / (ratings_count - 1),
+            total_rating   = total_rating - _punctuation
+        WHERE event_id = _event_id;
+    END IF;
+END;
+$$ LANGUAGE plpgsql;
+
 -- Update event statistics on rating insert
 CREATE FUNCTION events.update_event_statistics_on_rating_insert() RETURNS TRIGGER AS
 $$
@@ -9,21 +50,7 @@ BEGIN
         RETURN NEW;
     END IF;
 
-    IF EXISTS (SELECT event_id FROM statistics.event_statistics WHERE rating.event_id = NEW.event_id) THEN
-        UPDATE statistics.event_statistics
-        SET ratings_count  = ratings_count + 1,
-            average_rating = (total_rating + NEW.punctuation::float) / (ratings_count + 1),
-            total_rating   = total_rating + NEW.punctuation
-        WHERE event_id = NEW.event_id;
-    ELSE
-        INSERT INTO statistics.event_statistics (event_id,
-                                                 ratings_count,
-                                                 average_rating,
-                                                 total_rating,
-                                                 sales,
-                                                 occupancy)
-        VALUES (NEW.event_id, 1, NEW.punctuation, NEW.punctuation, 0, 0);
-    END IF;
+    PERFORM events.increase_statistic_rankings(NEW.event_id, NEW.punctuation);
 
     RETURN NEW;
 END;
@@ -46,32 +73,12 @@ BEGIN
 
     -- If the event was not published and now it is, we insert the rating
     IF NOT OLD.published AND NEW.published THEN
-        IF EXISTS (SELECT event_id FROM statistics.event_statistics WHERE rating.event_id = NEW.event_id) THEN
-            UPDATE statistics.event_statistics
-            SET ratings_count  = ratings_count + 1,
-                average_rating = (total_rating + NEW.punctuation::float) / (ratings_count + 1),
-                total_rating   = total_rating + NEW.punctuation
-            WHERE event_id = NEW.event_id;
-        ELSE
-            INSERT INTO statistics.event_statistics (event_id,
-                                                     ratings_count,
-                                                     average_rating,
-                                                     total_rating,
-                                                     sales,
-                                                     occupancy)
-            VALUES (NEW.event_id, 1, NEW.punctuation, NEW.punctuation, 0, 0);
-        END IF;
+        PERFORM events.increase_statistic_rankings(NEW.event_id, NEW.punctuation);
     END IF;
 
     -- If the event is not published anymore, we delete the rating
     IF OLD.published AND NOT NEW.published THEN
-        IF EXISTS (SELECT event_id FROM statistics.event_statistics WHERE rating.event_id = OLD.event_id) THEN
-            UPDATE statistics.event_statistics
-            SET ratings_count  = ratings_count - 1,
-                average_rating = (total_rating - OLD.punctuation::float) / (ratings_count - 1),
-                total_rating   = total_rating - OLD.punctuation
-            WHERE event_id = NEW.event_id;
-        END IF;
+        PERFORM events.decrease_statistic_rankings(OLD.event_id, OLD.punctuation);
     END IF;
 
     -- If the event was published and it's still published, we update the rating
@@ -100,13 +107,7 @@ BEGIN
         RETURN OLD;
     END IF;
 
-    IF EXISTS (SELECT event_id FROM statistics.event_statistics WHERE rating.event_id = OLD.event_id) THEN
-        UPDATE statistics.event_statistics
-        SET ratings_count  = ratings_count - 1,
-            average_rating = (total_rating - OLD.punctuation::float) / (ratings_count - 1),
-            total_rating   = total_rating - OLD.punctuation
-        WHERE event_id = NEW.event_id;
-    END IF;
+    PERFORM events.decrease_statistic_rankings(OLD.event_id, OLD.punctuation);
 
     RETURN OLD;
 END;
