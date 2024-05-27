@@ -18,7 +18,7 @@ CREATE TABLE statistics.Location_Statistics
 CREATE TABLE statistics.Event_Statistics
 (
     event_id       INTEGER PRIMARY KEY,
-    comments       INTEGER NOT NULL DEFAULT 0,
+    ratings_count  INTEGER NOT NULL DEFAULT 0,
     average_rating REAL    NOT NULL DEFAULT 0.0,
     sales          INTEGER NOT NULL DEFAULT 0,
     occupancy      REAL    NOT NULL DEFAULT 0.0

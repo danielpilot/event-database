@@ -6,10 +6,10 @@ $$
 BEGIN
     IF EXISTS (SELECT event_id FROM statistics.event_statistics WHERE rating.event_id = NEW.event_id) THEN
         UPDATE statistics.event_statistics
-        SET comments = comments + 1
+        SET ratings_count = ratings_count + 1
         WHERE event_id = NEW.event_id;
     ELSE
-        INSERT INTO statistics.event_statistics (event_id, comments, average_rating, sales, occupancy)
+        INSERT INTO statistics.event_statistics (event_id, ratings_count, average_rating, sales, occupancy)
         VALUES (NEW.event_id, 1, 0, 0, 0);
     END IF;
 
@@ -29,7 +29,7 @@ $$
 BEGIN
     IF EXISTS (SELECT event_id FROM statistics.event_statistics WHERE rating.event_id = OLD.event_id) THEN
         UPDATE statistics.event_statistics
-        SET comments = comments - 1
+        SET ratings_count = ratings_count - 1
         WHERE event_id = NEW.event_id;
     END IF;
 
@@ -37,7 +37,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER trg_update_event_statistics_on_rating_insert
+CREATE TRIGGER trg_update_event_statistics_on_rating_delete
     AFTER DELETE
     ON events.rating
     FOR EACH ROW
