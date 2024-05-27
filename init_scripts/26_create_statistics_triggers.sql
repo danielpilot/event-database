@@ -17,10 +17,8 @@ BEGIN
         INSERT INTO statistics.event_statistics (event_id,
                                                  ratings_count,
                                                  average_rating,
-                                                 total_rating,
-                                                 sales,
-                                                 occupancy)
-        VALUES (_event_id, 1, _punctuation, _punctuation, 0, 0);
+                                                 total_rating)
+        VALUES (_event_id, 1, _punctuation, _punctuation);
     END IF;
 END;
 $$ LANGUAGE plpgsql;
