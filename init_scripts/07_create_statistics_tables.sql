@@ -50,41 +50,6 @@ CREATE TABLE statistics.System_Counters
     value INTEGER NOT NULL
 ) TABLESPACE warehouse_tablespace;
 
--- Create top commented events table
-CREATE TABLE statistics.Top_Commented_Events
-(
-    event_id INTEGER PRIMARY KEY,
-    name     VARCHAR(255) NOT NULL
-) TABLESPACE warehouse_tablespace;
-
--- Create top valued events table
-CREATE TABLE statistics.Top_Valued_Events
-(
-    event_id INTEGER PRIMARY KEY,
-    name     VARCHAR(255) NOT NULL
-) TABLESPACE warehouse_tablespace;
-
--- Create top sold events table
-CREATE TABLE statistics.Top_Sold_Events
-(
-    event_id INTEGER PRIMARY KEY,
-    name     VARCHAR(255) NOT NULL
-) TABLESPACE warehouse_tablespace;
-
--- Create top event locations table
-CREATE TABLE statistics.Top_Event_Locations
-(
-    event_id INTEGER PRIMARY KEY,
-    name     VARCHAR(255) NOT NULL
-) TABLESPACE warehouse_tablespace;
-
--- Create top favorite events table
-CREATE TABLE statistics.Top_Favorite_Events
-(
-    event_id INTEGER PRIMARY KEY,
-    name     VARCHAR(255) NOT NULL
-) TABLESPACE warehouse_tablespace;
-
 -- Create integer indicators table
 CREATE TABLE statistics.Integer_Indicators
 (
