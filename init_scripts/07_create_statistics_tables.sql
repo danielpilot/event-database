@@ -37,7 +37,7 @@ CREATE TABLE statistics.Event_With_Sale_Statistics
 (
     event_id  INTEGER PRIMARY KEY,
     price     REAL    NOT NULL,
-    sells     INTEGER NOT NULL,
+    sales     INTEGER NOT NULL,
     occupancy REAL    NOT NULL
 ) TABLESPACE warehouse_tablespace;
 
