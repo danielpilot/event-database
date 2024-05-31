@@ -7,7 +7,7 @@ CREATE FUNCTION events.increase_statistic_ratings(
 ) RETURNS VOID AS
 $$
 BEGIN
-    IF EXISTS (SELECT event_id FROM statistics.event_statistics WHERE rating.event_id = _event_id) THEN
+    IF EXISTS (SELECT event_id FROM statistics.event_statistics WHERE event_id = _event_id) THEN
         UPDATE statistics.event_statistics
         SET ratings_count  = ratings_count + 1,
             average_rating = (total_rating + _punctuation) / (ratings_count + 1),
@@ -29,7 +29,7 @@ CREATE FUNCTION events.decrease_statistic_ratings(
 ) RETURNS VOID AS
 $$
 BEGIN
-    IF EXISTS (SELECT event_id FROM statistics.event_statistics WHERE rating.event_id = _event_id) THEN
+    IF EXISTS (SELECT event_id FROM statistics.event_statistics WHERE event_id = _event_id) THEN
         UPDATE statistics.event_statistics
         SET ratings_count  = ratings_count - 1,
             average_rating = (total_rating - _punctuation) / (ratings_count - 1),
@@ -82,7 +82,7 @@ BEGIN
     END IF;
 
     -- If the event was published and it's still published, we update the rating
-    IF EXISTS (SELECT event_id FROM statistics.event_statistics WHERE rating.event_id = NEW.event_id) THEN
+    IF EXISTS (SELECT event_id FROM statistics.event_statistics WHERE event_id = NEW.event_id) THEN
         UPDATE statistics.event_statistics
         SET average_rating = (total_rating + NEW.punctuation - OLD.punctuation) / ratings_count,
             total_rating   = total_rating + NEW.punctuation - OLD.punctuation
