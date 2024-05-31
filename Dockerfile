@@ -1,7 +1,7 @@
 FROM postgres:14
 
-# Install pgTAP
-RUN apt-get update && apt-get -y install postgresql-14-pgtap postgresql-14-cron
+# Install pg_cron and pgTap
+RUN apt-get update && apt-get -y install postgresql-14-cron postgresql-14-pgtap
 
 # Create different locations for tablespaces
 RUN mkdir -p /var/lib/pg_tablespaces/operational_tablespace
