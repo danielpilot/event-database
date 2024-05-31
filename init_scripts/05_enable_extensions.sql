@@ -1,3 +1,4 @@
 \c event_database;
 
 CREATE EXTENSION IF NOT EXISTS pgtap;
+CREATE EXTENSION IF NOT EXISTS pg_cron;
