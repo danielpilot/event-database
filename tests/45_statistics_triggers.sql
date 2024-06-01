@@ -3,11 +3,12 @@
 SET SEARCH_PATH TO public, events;
 
 BEGIN;
-SELECT plan(9);
+SELECT plan(15);
 -- Populate database
 INSERT INTO events.User (name, surname, email, password, roles)
 VALUES ('test', 'test', 'test@test.com', 'password', 'user'),
-       ('test2', 'test2', 'test2@test.com', 'password2', 'user');
+       ('test2', 'test2', 'test2@test.com', 'password2', 'user'),
+       ('test3', 'test3', 'test3@test.com', 'password3', 'user');
 
 INSERT INTO events.organizer (name, email, type)
 VALUES ('TestOrganizer', 'test@organizer.com', 'Company');
@@ -51,7 +52,19 @@ VALUES ('TestEvent',
         true,
         true,
         (SELECT id FROM events.organizer WHERE name = 'TestOrganizer'),
-        (SELECT id FROM events.Location WHERE name = 'TestLocation'));
+        (SELECT id FROM events.Location WHERE name = 'TestLocation')),
+    ('TestEvent2',
+        NOW(),
+        NOW(),
+        '',
+        '',
+        0.0,
+        true,
+        false,
+        true,
+        true,
+        (SELECT id FROM events.organizer WHERE name = 'TestOrganizer'),
+        (SELECT id FROM events.Location WHERE name = 'TestLocation2'));
 
 -- Test case: add rating that will not be counted for event
 INSERT INTO events.rating (event_id, user_id, punctuation, comment, published)
@@ -161,7 +174,8 @@ SELECT results_eq(
        );
 
 -- Test case: update statistics on event delete
-DELETE FROM events.rating
+DELETE
+FROM events.rating
 WHERE event_id = (SELECT id::integer FROM events.Event WHERE name = 'TestEvent' LIMIT 1)
   AND user_id = (SELECT id::integer FROM events.User WHERE email = 'test@test.com');
 
@@ -181,7 +195,8 @@ VALUES ((SELECT id::integer FROM events.Event WHERE name = 'TestEvent' LIMIT 1),
         'Test comment',
         false);
 
-DELETE FROM events.rating
+DELETE
+FROM events.rating
 WHERE event_id = (SELECT id::integer FROM events.Event WHERE name = 'TestEvent' LIMIT 1)
   AND user_id = (SELECT id::integer FROM events.User WHERE email = 'test@test.com');
 
@@ -192,6 +207,73 @@ SELECT results_eq(
                ARRAY ['1', '2', '2'],
                'Must not update statistics when unpublished comment rating is deleted'
        );
+
+-- Test case: must create statistics when new favorite is published
+DELETE
+FROM statistics.event_statistics
+WHERE event_id = (SELECT id::integer FROM events.Event WHERE name = 'TestEvent' LIMIT 1);
+
+INSERT INTO events.event_favorite (event_id, user_id)
+VALUES ((SELECT id::integer FROM events.Event WHERE name = 'TestEvent' LIMIT 1),
+        (SELECT id::integer FROM events.User WHERE email = 'test@test.com'));
+
+SELECT is((SELECT favorites::text
+           FROM statistics.event_statistics
+           WHERE event_id = (SELECT id::integer FROM events.Event WHERE name = 'TestEvent' LIMIT 1)),
+          '1',
+          'Must add favorite when first favorite is published');
+
+-- Test case: must increment statistics when new favorite is published
+INSERT INTO events.event_favorite (event_id, user_id)
+VALUES ((SELECT id::integer FROM events.Event WHERE name = 'TestEvent' LIMIT 1),
+        (SELECT id::integer FROM events.User WHERE email = 'test2@test.com'));
+
+SELECT is((SELECT favorites::text
+           FROM statistics.event_statistics
+           WHERE event_id = (SELECT id::integer FROM events.Event WHERE name = 'TestEvent' LIMIT 1)),
+          '2',
+          'Must add favorite when favorite is published');
+
+-- Test case: must keep statistics when favorite user is updated
+UPDATE events.event_favorite
+SET user_id = (SELECT id::integer FROM events.User WHERE email = 'test3@test.com')
+WHERE event_id = (SELECT id::integer FROM events.Event WHERE name = 'TestEvent' LIMIT 1)
+  AND user_id = (SELECT id::integer FROM events.User WHERE email = 'test2@test.com');
+
+SELECT is((SELECT favorites::text
+           FROM statistics.event_statistics
+           WHERE event_id = (SELECT id::integer FROM events.Event WHERE name = 'TestEvent' LIMIT 1)),
+          '2',
+          'Must keep statistics when favorite user is updated');
+
+-- Test case: must update statistics when favorite event is changed
+UPDATE events.event_favorite
+SET event_id = (SELECT id::integer FROM events.Event WHERE name = 'TestEvent2' LIMIT 1)
+WHERE event_id = (SELECT id::integer FROM events.Event WHERE name = 'TestEvent' LIMIT 1)
+  AND user_id = (SELECT id::integer FROM events.User WHERE email = 'test3@test.com');
+
+SELECT is((SELECT favorites::text
+           FROM statistics.event_statistics
+           WHERE event_id = (SELECT id::integer FROM events.Event WHERE name = 'TestEvent' LIMIT 1)),
+          '1',
+          'Must decrease statistics when favorite event is updated');
+
+SELECT is((SELECT favorites::text
+           FROM statistics.event_statistics
+           WHERE event_id = (SELECT id::integer FROM events.Event WHERE name = 'TestEvent2' LIMIT 1)),
+          '1',
+          'Must increase statistics when favorite event is updated');
+
+-- Test case: must decrease statistics when favorite is deleted
+DELETE FROM events.event_favorite
+WHERE event_id = (SELECT id::integer FROM events.Event WHERE name = 'TestEvent2' LIMIT 1)
+  AND user_id = (SELECT id::integer FROM events.User WHERE email = 'test3@test.com');
+
+SELECT is((SELECT favorites::text
+           FROM statistics.event_statistics
+           WHERE event_id = (SELECT id::integer FROM events.Event WHERE name = 'TestEvent2' LIMIT 1)),
+          '0',
+          'Must decrease statistics when favorite event is deleted');
 
 -- Finish the test
 SELECT *
