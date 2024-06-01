@@ -10,7 +10,7 @@ BEGIN
     IF EXISTS (SELECT event_id FROM statistics.event_statistics WHERE event_id = _event_id) THEN
         UPDATE statistics.event_statistics
         SET ratings_count  = ratings_count + 1,
-            average_rating = (total_rating + _punctuation) / (ratings_count + 1),
+            average_rating = (total_rating + _punctuation::real) / (ratings_count + 1),
             total_rating   = total_rating + _punctuation
         WHERE event_id = _event_id;
     ELSE
@@ -18,7 +18,7 @@ BEGIN
                                                  ratings_count,
                                                  average_rating,
                                                  total_rating)
-        VALUES (_event_id, 1, _punctuation, _punctuation);
+        VALUES (_event_id, 1, _punctuation::real, _punctuation);
     END IF;
 END;
 $$ LANGUAGE plpgsql;
