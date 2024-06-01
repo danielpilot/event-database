@@ -39,6 +39,36 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+CREATE FUNCTION events.increase_statistic_favorites(
+    _event_id INTEGER
+) RETURNS VOID AS
+$$
+BEGIN
+    IF EXISTS (SELECT event_id FROM statistics.event_statistics WHERE event_id = _event_id) THEN
+        UPDATE statistics.event_statistics
+        SET favorites = favorites + 1
+        WHERE event_id = _event_id;
+    ELSE
+        INSERT INTO statistics.event_statistics (event_id,
+                                                 favorites)
+        VALUES (_event_id, 1);
+    END IF;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE FUNCTION events.decrease_statistic_ratings(
+    _event_id INTEGER
+) RETURNS VOID AS
+$$
+BEGIN
+    IF EXISTS (SELECT event_id FROM statistics.event_statistics WHERE event_id = _event_id) THEN
+        UPDATE statistics.event_statistics
+        SET favorites = favorites - 1
+        WHERE event_id = _event_id;
+    END IF;
+END;
+$$ LANGUAGE plpgsql;
+
 -- Update event statistics on rating insert
 CREATE FUNCTION events.update_event_statistics_on_rating_insert() RETURNS TRIGGER AS
 $$
@@ -118,3 +148,56 @@ CREATE TRIGGER trg_update_event_statistics_on_rating_delete
     ON events.rating
     FOR EACH ROW
 EXECUTE PROCEDURE events.update_event_statistics_on_rating_delete();
+
+-- Update event statistics on favorite insert
+CREATE FUNCTION events.update_event_statistics_on_favorite_insert() RETURNS TRIGGER AS
+$$
+BEGIN
+    PERFORM events.increase_statistic_favorites(NEW.event_id);
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_update_event_statistics_on_favorite_insert
+    AFTER INSERT
+    ON events.event_favorite
+    FOR EACH ROW
+EXECUTE PROCEDURE events.update_event_statistics_on_favorite_insert();
+
+-- Update event statistics on favorite update
+CREATE FUNCTION events.update_event_statistics_on_favorite_update() RETURNS TRIGGER AS
+$$
+BEGIN
+    IF NEW.event_id = OLD.event_id THEN
+        RETURN NEW;
+    END IF;
+
+    PERFORM events.increase_statistic_favorites(NEW.event_id);
+    PERFORM events.decrease_statistic_ratings(OLD.event_id);
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_update_event_statistics_on_favorite_update
+    AFTER UPDATE
+    ON events.event_favorite
+    FOR EACH ROW
+EXECUTE PROCEDURE events.update_event_statistics_on_favorite_update();
+
+-- Delete event statistics on favorite delete
+CREATE FUNCTION events.update_event_statistics_on_favorite_delete() RETURNS TRIGGER AS
+$$
+BEGIN
+    PERFORM events.decrease_statistic_ratings(OLD.event_id);
+
+    RETURN OLD;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_update_event_statistics_on_favorite_delete
+    AFTER DELETE
+    ON events.event_favorite
+    FOR EACH ROW
+EXECUTE PROCEDURE events.update_event_statistics_on_favorite_delete();

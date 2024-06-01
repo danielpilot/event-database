@@ -20,7 +20,8 @@ CREATE TABLE statistics.Event_Statistics
     event_id       INTEGER PRIMARY KEY,
     ratings_count  INTEGER NOT NULL DEFAULT 0,
     average_rating REAL    NOT NULL DEFAULT 0.0,
-    total_rating   INTEGER NOT NULL DEFAULT 0
+    total_rating   INTEGER NOT NULL DEFAULT 0,
+    favorites      INTEGER NOT NULL DEFAULT 0
 ) TABLESPACE warehouse_tablespace;
 
 -- Create transaction statistics table
