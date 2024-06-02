@@ -42,3 +42,7 @@ INSERT INTO logs.Procedure (name, description) VALUES ('create_location', 'Creat
                                                        ('create_city', 'Creates a new city'),
                                                        ('update_city', 'Updates a city'),
                                                        ('delete_city', 'Deletes a city');
+
+-- Load initial system counters
+INSERT INTO statistics.system_counters (name, value)
+VALUES ('non_admin_users', 0);

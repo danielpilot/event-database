@@ -337,3 +337,71 @@ CREATE TRIGGER trg_update_event_statistics_on_event_delete
     ON events.event
     FOR EACH ROW
 EXECUTE PROCEDURE events.update_location_statistics_on_event_delete();
+
+-- Update the number of non-admin users on user insert
+CREATE FUNCTION events.update_non_admin_users_on_user_delete() RETURNS TRIGGER AS
+$$
+BEGIN
+    IF NEW.roles LIKE '%admin%' THEN
+        RETURN NEW;
+    END IF;
+
+    UPDATE statistics.system_counters
+    SET value = value + 1
+    WHERE name = 'non_admin_users';
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_update_non_admin_users_on_user_insert
+    AFTER INSERT
+    ON events.User
+    FOR EACH ROW
+EXECUTE PROCEDURE events.update_non_admin_users_on_user_delete();
+
+-- Update the number of non-admin users on user update
+CREATE FUNCTION events.update_non_admin_users_on_user_update() RETURNS TRIGGER AS
+$$
+BEGIN
+    IF OLD.roles NOT LIKE '%admin%' AND NEW.roles LIKE '%admin%' THEN
+        UPDATE statistics.system_counters
+        SET value = value - 1
+        WHERE name = 'non_admin_users';
+    END IF;
+
+    IF OLD.roles LIKE '%admin%' AND NEW.roles NOT LIKE '%admin%' THEN
+        UPDATE statistics.system_counters
+        SET value = value + 1
+        WHERE name = 'non_admin_users';
+    END IF;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_update_non_admin_users_on_user_update
+    AFTER INSERT
+    ON events.User
+    FOR EACH ROW
+EXECUTE PROCEDURE events.update_non_admin_users_on_user_delete();
+
+-- Update the number of non-admin users on user delete
+CREATE FUNCTION events.update_non_admin_users_on_user_update() RETURNS TRIGGER AS
+$$
+BEGIN
+    IF OLD.roles NOT LIKE '%admin%'THEN
+        UPDATE statistics.system_counters
+        SET value = value - 1
+        WHERE name = 'non_admin_users';
+    END IF;
+
+    RETURN OLD;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_update_non_admin_users_on_user_update
+    AFTER INSERT
+    ON events.User
+    FOR EACH ROW
+EXECUTE PROCEDURE events.update_non_admin_users_on_user_delete();
