@@ -271,6 +271,10 @@ EXECUTE PROCEDURE events.update_event_statistics_on_favorite_delete();
 CREATE FUNCTION events.update_location_statistics_on_event_insert() RETURNS TRIGGER AS
 $$
 BEGIN
+    IF NOT NEW.event_published OR NOT NEW.event_published THEN
+        RETURN NEW;
+    END IF;
+
     PERFORM events.increase_statistics_location(NEW.location_id);
 
     RETURN NEW;
@@ -287,6 +291,16 @@ EXECUTE PROCEDURE events.update_location_statistics_on_event_insert();
 CREATE FUNCTION events.update_location_statistics_on_event_update() RETURNS TRIGGER AS
 $$
 BEGIN
+    IF (NEW.event_published AND NEW.event_status) AND NOT (OLD.event_published AND NEW.event_status) THEN
+        PERFORM events.increase_statistics_location(NEW.location_id);
+        RETURN NEW;
+    END IF;
+
+    IF (OLD.event_published AND OLD.event_status) AND NOT (NEW.event_published AND NEW.event_status) THEN
+        PERFORM events.decrease_statistics_location(OLD.location_id);
+        RETURN NEW;
+    END IF;
+
     IF NEW.location_id = OLD.location_id THEN
         RETURN NEW;
     END IF;
@@ -308,6 +322,10 @@ EXECUTE PROCEDURE events.update_location_statistics_on_event_update();
 CREATE FUNCTION events.update_location_statistics_on_event_delete() RETURNS TRIGGER AS
 $$
 BEGIN
+    IF NOT OLD.event_published OR NOT OLD.event_status THEN
+        RETURN OLD;
+    END IF;
+
     PERFORM events.decrease_statistics_location(OLD.location_id);
 
     RETURN OLD;
