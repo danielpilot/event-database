@@ -338,7 +338,7 @@ CREATE TRIGGER trg_update_event_statistics_on_event_delete
     FOR EACH ROW
 EXECUTE PROCEDURE events.update_location_statistics_on_event_delete();
 
--- Update the number of non-admin users on user insert
+-- Update user statistics on user insert
 CREATE FUNCTION events.update_user_statistics_on_user_insert() RETURNS TRIGGER AS
 $$
 BEGIN
@@ -360,7 +360,7 @@ CREATE TRIGGER trg_update_user_statistics_on_user_insert
     FOR EACH ROW
 EXECUTE PROCEDURE events.update_user_statistics_on_user_insert();
 
--- Update the number of non-admin users on user update
+-- Update user statistics on user update
 CREATE FUNCTION events.update_user_statistics_on_user_update() RETURNS TRIGGER AS
 $$
 BEGIN
@@ -386,7 +386,7 @@ CREATE TRIGGER trg_update_user_statistics_on_user_update
     FOR EACH ROW
 EXECUTE PROCEDURE events.update_user_statistics_on_user_update();
 
--- Update the number of non-admin users on user delete
+-- Update user statistics on user delete
 CREATE FUNCTION events.update_user_statistics_on_user_delete() RETURNS TRIGGER AS
 $$
 BEGIN
