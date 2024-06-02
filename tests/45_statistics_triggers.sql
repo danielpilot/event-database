@@ -528,13 +528,13 @@ SELECT is((SELECT events::text
            FROM statistics.location_statistics
            WHERE location_id = (SELECT id::integer FROM events.location WHERE name = 'TestLocation3' LIMIT 1)),
           '1',
-          'Must keep statistics for location when event is deleted');
+          'Must keep statistics for location when cancelled event is deleted');
 
 SELECT is((SELECT events::text
            FROM statistics.city_statistics
            WHERE city_id = (SELECT id::integer FROM events.city WHERE name = 'TestCity2' LIMIT 1)),
           '1',
-          'Must keep statistics for city when event is deleted');
+          'Must keep statistics for city when cancelled event is deleted');
 
 -- Test case: must keep statistics when unpublished event is deleted
 DELETE
@@ -545,13 +545,13 @@ SELECT is((SELECT events::text
            FROM statistics.location_statistics
            WHERE location_id = (SELECT id::integer FROM events.location WHERE name = 'TestLocation3' LIMIT 1)),
           '1',
-          'Must keep statistics for location when event is deleted');
+          'Must keep statistics for location when unpublished event is deleted');
 
 SELECT is((SELECT events::text
            FROM statistics.city_statistics
            WHERE city_id = (SELECT id::integer FROM events.city WHERE name = 'TestCity2' LIMIT 1)),
           '1',
-          'Must keep statistics for city when event is deleted');
+          'Must keep statistics for city when unpublished event is deleted');
 
 -- Test case: must decrease statistics when published event is deleted
 DELETE
