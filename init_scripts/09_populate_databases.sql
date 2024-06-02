@@ -45,4 +45,5 @@ INSERT INTO logs.Procedure (name, description) VALUES ('create_location', 'Creat
 
 -- Load initial system counters
 INSERT INTO statistics.system_counters (name, value)
-VALUES ('non_admin_users', 0);
+VALUES ('non_admin_users', 0),
+       ('total_transactions', 0);

@@ -339,7 +339,7 @@ CREATE TRIGGER trg_update_event_statistics_on_event_delete
 EXECUTE PROCEDURE events.update_location_statistics_on_event_delete();
 
 -- Update the number of non-admin users on user insert
-CREATE FUNCTION events.update_non_admin_users_on_user_insert() RETURNS TRIGGER AS
+CREATE FUNCTION events.update_user_statistics_on_user_insert() RETURNS TRIGGER AS
 $$
 BEGIN
     IF NEW.roles LIKE '%admin%' THEN
@@ -354,14 +354,14 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER trg_update_non_admin_users_on_user_insert
+CREATE TRIGGER trg_update_user_statistics_on_user_insert
     AFTER INSERT
     ON events.User
     FOR EACH ROW
-EXECUTE PROCEDURE events.update_non_admin_users_on_user_insert();
+EXECUTE PROCEDURE events.update_user_statistics_on_user_insert();
 
 -- Update the number of non-admin users on user update
-CREATE FUNCTION events.update_non_admin_users_on_user_update() RETURNS TRIGGER AS
+CREATE FUNCTION events.update_user_statistics_on_user_update() RETURNS TRIGGER AS
 $$
 BEGIN
     IF OLD.roles NOT LIKE '%admin%' AND NEW.roles LIKE '%admin%' THEN
@@ -380,17 +380,17 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER trg_update_non_admin_users_on_user_update
+CREATE TRIGGER trg_update_user_statistics_on_user_update
     AFTER UPDATE
     ON events.User
     FOR EACH ROW
-EXECUTE PROCEDURE events.update_non_admin_users_on_user_update();
+EXECUTE PROCEDURE events.update_user_statistics_on_user_update();
 
 -- Update the number of non-admin users on user delete
-CREATE FUNCTION events.update_non_admin_users_on_user_delete() RETURNS TRIGGER AS
+CREATE FUNCTION events.update_user_statistics_on_user_delete() RETURNS TRIGGER AS
 $$
 BEGIN
-    IF OLD.roles NOT LIKE '%admin%'THEN
+    IF OLD.roles NOT LIKE '%admin%' THEN
         UPDATE statistics.system_counters
         SET value = value - 1
         WHERE name = 'non_admin_users';
@@ -400,8 +400,44 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER trg_update_non_admin_users_on_user_delete
+CREATE TRIGGER trg_update_user_statistics_on_user_delete
     AFTER DELETE
     ON events.User
     FOR EACH ROW
-EXECUTE PROCEDURE events.update_non_admin_users_on_user_delete();
+EXECUTE PROCEDURE events.update_user_statistics_on_user_delete();
+
+-- Update the total number of transactions on transaction insert
+CREATE FUNCTION events.update_transaction_statistics_on_transaction_insert() RETURNS TRIGGER AS
+$$
+BEGIN
+    UPDATE statistics.system_counters
+    SET value = value + 1
+    WHERE name = 'total_transactions';
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_update_transaction_statistics_on_transaction_insert
+    AFTER INSERT
+    ON events.Transaction
+    FOR EACH ROW
+EXECUTE PROCEDURE events.update_transaction_statistics_on_transaction_insert();
+
+-- Update transaction statistics on transaction delete
+CREATE FUNCTION events.update_transaction_statistics_on_transaction_delete() RETURNS TRIGGER AS
+$$
+BEGIN
+    UPDATE statistics.system_counters
+    SET value = value - 1
+    WHERE name = 'total_transactions';
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_update_transaction_statistics_on_transaction_delete
+    AFTER DELETE
+    ON events.Transaction
+    FOR EACH ROW
+EXECUTE PROCEDURE events.update_transaction_statistics_on_transaction_insert();

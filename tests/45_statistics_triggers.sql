@@ -4,6 +4,7 @@ SET SEARCH_PATH TO public, events;
 
 BEGIN;
 SELECT plan(49);
+
 -- Populate database
 INSERT INTO events.User (name, surname, email, password, roles)
 VALUES ('test', 'test', 'test@test.com', 'password', 'user'),
