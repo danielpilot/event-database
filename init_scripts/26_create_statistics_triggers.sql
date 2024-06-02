@@ -69,6 +69,71 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+CREATE FUNCTION events.increase_statistics_location(
+    _location_id INTEGER
+) RETURNS VOID AS
+$$
+BEGIN
+    IF EXISTS (SELECT location_id FROM statistics.location_statistics WHERE location_id = _location_id) THEN
+        UPDATE statistics.location_statistics
+        SET events = events + 1
+        WHERE location_id = _location_id;
+    ELSE
+        INSERT INTO statistics.location_statistics (location_id,
+                                                    events)
+        VALUES (_location_id, 1);
+    END IF;
+
+    PERFORM events.increase_statistics_city((SELECT city_id::integer FROM events.location WHERE id = _location_id));
+END;
+$$ language plpgsql;
+
+CREATE FUNCTION events.decrease_statistics_location(
+    _location_id INTEGER
+) RETURNS VOID AS
+$$
+BEGIN
+    IF EXISTS (SELECT location_id FROM statistics.location_statistics WHERE location_id = _location_id) THEN
+        UPDATE statistics.location_statistics
+        SET events = events - 1
+        WHERE location_id = _location_id;
+    END IF;
+
+    PERFORM events.decrease_statistics_city((SELECT city_id::integer FROM events.location WHERE id = _location_id));
+END;
+
+$$ language plpgsql;
+
+CREATE FUNCTION events.increase_statistics_city(
+    _city_id INTEGER
+) RETURNS VOID AS
+$$
+BEGIN
+    IF EXISTS (SELECT city_id FROM statistics.city_statistics WHERE city_id = _city_id) THEN
+        UPDATE statistics.city_statistics
+        SET events = events + 1
+        WHERE city_id = _city_id;
+    ELSE
+        INSERT INTO statistics.city_statistics (city_id,
+                                                events)
+        VALUES (_city_id, 1);
+    END IF;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE FUNCTION events.decrease_statistics_city(
+    _city_id INTEGER
+) RETURNS VOID AS
+$$
+BEGIN
+    IF EXISTS (SELECT city_id FROM statistics.city_statistics WHERE city_id = _city_id) THEN
+        UPDATE statistics.city_statistics
+        SET events = events - 1
+        WHERE city_id = _city_id;
+    END IF;
+END;
+$$ LANGUAGE plpgsql;
+
 -- Update event statistics on rating insert
 CREATE FUNCTION events.update_event_statistics_on_rating_insert() RETURNS TRIGGER AS
 $$
@@ -201,3 +266,56 @@ CREATE TRIGGER trg_update_event_statistics_on_favorite_delete
     ON events.event_favorite
     FOR EACH ROW
 EXECUTE PROCEDURE events.update_event_statistics_on_favorite_delete();
+
+-- Create location statistics on event create
+CREATE FUNCTION events.update_location_statistics_on_event_insert() RETURNS TRIGGER AS
+$$
+BEGIN
+    PERFORM events.increase_statistics_location(NEW.location_id);
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_create_event_statistics_on_event_insert
+    AFTER INSERT
+    ON events.event
+    FOR EACH ROW
+EXECUTE PROCEDURE events.update_location_statistics_on_event_insert();
+
+-- Update location statistics on event update
+CREATE FUNCTION events.update_location_statistics_on_event_update() RETURNS TRIGGER AS
+$$
+BEGIN
+    IF NEW.location_id = OLD.location_id THEN
+        RETURN NEW;
+    END IF;
+
+    PERFORM events.increase_statistics_location(NEW.location_id);
+    PERFORM events.decrease_statistics_location(OLD.location_id);
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_update_event_statistics_on_event_update
+    AFTER UPDATE
+    ON events.event
+    FOR EACH ROW
+EXECUTE PROCEDURE events.update_location_statistics_on_event_update();
+
+-- Update location statistics on event delete
+CREATE FUNCTION events.update_location_statistics_on_event_delete() RETURNS TRIGGER AS
+$$
+BEGIN
+    PERFORM events.decrease_statistics_location(OLD.location_id);
+
+    RETURN OLD;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_update_event_statistics_on_event_delete
+    AFTER DELETE
+    ON events.event
+    FOR EACH ROW
+EXECUTE PROCEDURE events.update_location_statistics_on_event_delete();
