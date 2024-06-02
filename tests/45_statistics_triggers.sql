@@ -3,7 +3,7 @@
 SET SEARCH_PATH TO public, events;
 
 BEGIN;
-SELECT plan(27);
+SELECT plan(43);
 -- Populate database
 INSERT INTO events.User (name, surname, email, password, roles)
 VALUES ('test', 'test', 'test@test.com', 'password', 'user'),
@@ -278,20 +278,20 @@ SELECT is((SELECT favorites::text
           '0',
           'Must decrease statistics when favorite event is deleted');
 
--- Test case: must have created statistics when event was created
-SELECT is((SELECT events::text
+-- Test case: must have not create statistics on unpublished event creation
+SELECT is((SELECT COUNT(*)::text
            FROM statistics.location_statistics
            WHERE location_id = (SELECT id::integer FROM events.location WHERE name = 'TestLocation' LIMIT 1)),
-          '1',
-          'Must have created statistics for location when event was created');
+          '0',
+          'Must have not create statistics on unpublished event creation');
 
-SELECT is((SELECT events::text
+SELECT is((SELECT COUNT(*)::text
            FROM statistics.city_statistics
            WHERE city_id = (SELECT id::integer FROM events.city WHERE name = 'TestCity' LIMIT 1)),
-          '2',
-          'Must have created statistics for city when event was created');
+          '0',
+          'Must have not created statistics for city when unpublished event was created');
 
--- Test case: must increase statistics when event is created
+-- Test case: must have not create statistics on cancelled event creation
 INSERT INTO events.Event (name,
                           start_date,
                           end_date,
@@ -310,8 +310,84 @@ VALUES ('TestEvent3',
         '',
         '',
         0.0,
-        true,
         false,
+        true,
+        true,
+        true,
+        (SELECT id FROM events.organizer WHERE name = 'TestOrganizer'),
+        (SELECT id FROM events.Location WHERE name = 'TestLocation'));
+
+SELECT is((SELECT COUNT(*)::text
+           FROM statistics.location_statistics
+           WHERE location_id = (SELECT id::integer FROM events.location WHERE name = 'TestLocation' LIMIT 1)),
+          '0',
+          'Must have not create statistics on cancelled event creation');
+
+SELECT is((SELECT COUNT(*)::text
+           FROM statistics.city_statistics
+           WHERE city_id = (SELECT id::integer FROM events.city WHERE name = 'TestCity' LIMIT 1)),
+          '0',
+          'Must have not created statistics for city when cancelled event was created');
+
+-- Test case: must create statistics when event is created
+INSERT INTO events.Event (name,
+                          start_date,
+                          end_date,
+                          schedule,
+                          description,
+                          price,
+                          event_status,
+                          event_published,
+                          event_has_sales,
+                          comments,
+                          organizer_id,
+                          location_id)
+VALUES ('TestEvent4',
+        NOW(),
+        NOW(),
+        '',
+        '',
+        0.0,
+        true,
+        true,
+        true,
+        true,
+        (SELECT id FROM events.organizer WHERE name = 'TestOrganizer'),
+        (SELECT id FROM events.Location WHERE name = 'TestLocation'));
+
+SELECT is((SELECT events::text
+           FROM statistics.location_statistics
+           WHERE location_id = (SELECT id::integer FROM events.location WHERE name = 'TestLocation' LIMIT 1)),
+          '1',
+          'Must create statistics for location when event is created');
+
+SELECT is((SELECT events::text
+           FROM statistics.city_statistics
+           WHERE city_id = (SELECT id::integer FROM events.city WHERE name = 'TestCity' LIMIT 1)),
+          '1',
+          'Must create statistics for city when event is created');
+
+-- Test case: must increase statistics when event is created
+INSERT INTO events.Event (name,
+                          start_date,
+                          end_date,
+                          schedule,
+                          description,
+                          price,
+                          event_status,
+                          event_published,
+                          event_has_sales,
+                          comments,
+                          organizer_id,
+                          location_id)
+VALUES ('TestEvent5',
+        NOW(),
+        NOW(),
+        '',
+        '',
+        0.0,
+        true,
+        true,
         true,
         true,
         (SELECT id FROM events.organizer WHERE name = 'TestOrganizer'),
@@ -326,24 +402,92 @@ SELECT is((SELECT events::text
 SELECT is((SELECT events::text
            FROM statistics.city_statistics
            WHERE city_id = (SELECT id::integer FROM events.city WHERE name = 'TestCity' LIMIT 1)),
-          '3',
+          '2',
           'Must increase statistics for city when event is created');
 
--- Test case: must update statistics when event location is updated
+-- Test case: must increase statistics when unpublished event gets published
 UPDATE events.Event
-SET location_id = (SELECT id FROM events.Location WHERE name = 'TestLocation3')
+SET event_published = true
+WHERE name = 'TestEvent';
+
+SELECT is((SELECT events::text
+           FROM statistics.location_statistics
+           WHERE location_id = (SELECT id::integer FROM events.location WHERE name = 'TestLocation' LIMIT 1)),
+          '3',
+          'Must increase statistics for location when event is published');
+
+SELECT is((SELECT events::text
+           FROM statistics.city_statistics
+           WHERE city_id = (SELECT id::integer FROM events.city WHERE name = 'TestCity' LIMIT 1)),
+          '3',
+          'Must increase statistics for city when event is published');
+
+-- Test case: must increase statistics when unpublished event gets programmed
+UPDATE events.Event
+SET event_status = true
+WHERE name = 'TestEvent3';
+
+SELECT is((SELECT events::text
+           FROM statistics.location_statistics
+           WHERE location_id = (SELECT id::integer FROM events.location WHERE name = 'TestLocation' LIMIT 1)),
+          '3',
+          'Must increase statistics for location when event is programmed');
+
+SELECT is((SELECT events::text
+           FROM statistics.city_statistics
+           WHERE city_id = (SELECT id::integer FROM events.city WHERE name = 'TestCity' LIMIT 1)),
+          '3',
+          'Must increase statistics for city when event is programmed');
+
+-- Test case: must decrease statistics when published event gets unpublished
+UPDATE events.Event
+SET event_published = false
+WHERE name = 'TestEvent';
+
+SELECT is((SELECT events::text
+           FROM statistics.location_statistics
+           WHERE location_id = (SELECT id::integer FROM events.location WHERE name = 'TestLocation' LIMIT 1)),
+          '2',
+          'Must decrease statistics for location when event is unpublished');
+
+SELECT is((SELECT events::text
+           FROM statistics.city_statistics
+           WHERE city_id = (SELECT id::integer FROM events.city WHERE name = 'TestCity' LIMIT 1)),
+          '2',
+          'Must decrease statistics for city when event is unpublished');
+
+-- Test case: must decrease statistics when event is cancelled
+UPDATE events.Event
+SET event_status = false
 WHERE name = 'TestEvent3';
 
 SELECT is((SELECT events::text
            FROM statistics.location_statistics
            WHERE location_id = (SELECT id::integer FROM events.location WHERE name = 'TestLocation' LIMIT 1)),
           '1',
+          'Must decrease statistics for location when event is cancelled');
+
+SELECT is((SELECT events::text
+           FROM statistics.city_statistics
+           WHERE city_id = (SELECT id::integer FROM events.city WHERE name = 'TestCity' LIMIT 1)),
+          '1',
+          'Must decrease statistics for city when event is cancelled');
+
+-- Test case: must update statistics when event location is updated
+UPDATE events.Event
+SET location_id = (SELECT id FROM events.Location WHERE name = 'TestLocation3')
+WHERE name = 'TestEvent5';
+
+SELECT is((SELECT events::text
+           FROM statistics.location_statistics
+           WHERE location_id = (SELECT id::integer FROM events.location WHERE name = 'TestLocation' LIMIT 1)),
+          '0',
           'Must decrease statistics for location when event location is moved');
 
 SELECT is((SELECT events::text
            FROM statistics.city_statistics
            WHERE city_id = (SELECT id::integer FROM events.city WHERE name = 'TestCity' LIMIT 1)),
-          '2',
+          '0',
           'Must decrease statistics for city when event location is moved');
 
 SELECT is((SELECT events::text
@@ -361,7 +505,7 @@ SELECT is((SELECT events::text
 -- Test case: must keep statistics when event is not moved
 UPDATE events.Event
 SET description = 'NewDescription'
-WHERE name = 'TestEvent3';
+WHERE name = 'TestEvent5';
 
 SELECT is((SELECT events::text
            FROM statistics.location_statistics
@@ -375,9 +519,44 @@ SELECT is((SELECT events::text
           '1',
           'Must keep statistics for city when event location is not moved');
 
--- Test case: must decrease statistics when event is deleted
-DELETE FROM events.Event
+-- Test case: must keep statistics when cancelled event is deleted
+DELETE
+FROM events.Event
 WHERE name = 'TestEvent3';
+
+SELECT is((SELECT events::text
+           FROM statistics.location_statistics
+           WHERE location_id = (SELECT id::integer FROM events.location WHERE name = 'TestLocation3' LIMIT 1)),
+          '1',
+          'Must keep statistics for location when event is deleted');
+
+SELECT is((SELECT events::text
+           FROM statistics.city_statistics
+           WHERE city_id = (SELECT id::integer FROM events.city WHERE name = 'TestCity2' LIMIT 1)),
+          '1',
+          'Must keep statistics for city when event is deleted');
+
+-- Test case: must keep statistics when unpublished event is deleted
+DELETE
+FROM events.Event
+WHERE name = 'TestEvent';
+
+SELECT is((SELECT events::text
+           FROM statistics.location_statistics
+           WHERE location_id = (SELECT id::integer FROM events.location WHERE name = 'TestLocation3' LIMIT 1)),
+          '1',
+          'Must keep statistics for location when event is deleted');
+
+SELECT is((SELECT events::text
+           FROM statistics.city_statistics
+           WHERE city_id = (SELECT id::integer FROM events.city WHERE name = 'TestCity2' LIMIT 1)),
+          '1',
+          'Must keep statistics for city when event is deleted');
+
+-- Test case: must decrease statistics when published event is deleted
+DELETE
+FROM events.event
+WHERE name = 'TestEvent5';
 
 SELECT is((SELECT events::text
            FROM statistics.location_statistics
