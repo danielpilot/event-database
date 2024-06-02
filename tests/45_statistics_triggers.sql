@@ -3,7 +3,7 @@
 SET SEARCH_PATH TO public, events;
 
 BEGIN;
-SELECT plan(43);
+SELECT plan(49);
 -- Populate database
 INSERT INTO events.User (name, surname, email, password, roles)
 VALUES ('test', 'test', 'test@test.com', 'password', 'user'),
@@ -569,6 +569,65 @@ SELECT is((SELECT events::text
            WHERE city_id = (SELECT id::integer FROM events.city WHERE name = 'TestCity2' LIMIT 1)),
           '0',
           'Must decrease statistics for city when event is deleted');
+
+-- Test case: must increase non-admin users when user is created
+SELECT is((SELECT value::text
+           FROM statistics.system_counters
+           WHERE name = 'non_admin_users'),
+          '3',
+          'Must create non-admin users statistics correctly');
+
+-- Test case: must keep non-admin users count when admin user is created
+INSERT INTO events.User (name, surname, email, password, roles)
+VALUES ('test4', 'test4', 'test4@test.com', 'password4', 'admin');
+
+SELECT is((SELECT value::text
+           FROM statistics.system_counters
+           WHERE name = 'non_admin_users'),
+          '3',
+          'Must keep non-admin users statistics after admin user insert');
+
+-- Test case: must keep non-admin users count when admin user is updated into non-admin
+UPDATE events.user
+SET roles = 'user'
+WHERE email = 'test4@test.com';
+
+SELECT is((SELECT value::text
+           FROM statistics.system_counters
+           WHERE name = 'non_admin_users'),
+          '4',
+          'Must keep non-admin users statistics after admin user is changed to non-admin');
+
+-- Test case: must decrease non-admin users count when non-admin user is updated into admin
+UPDATE events.user
+SET roles = 'user,admin'
+WHERE email = 'test4@test.com';
+
+SELECT is((SELECT value::text
+           FROM statistics.system_counters
+           WHERE name = 'non_admin_users'),
+          '3',
+          'Must decrease non-admin users statistics after non-admin user is changed to admin');
+
+-- Test case: must keep statistics on admin user delete
+DELETE FROM events.user
+WHERE email = 'test4@test.com';
+
+SELECT is((SELECT value::text
+           FROM statistics.system_counters
+           WHERE name = 'non_admin_users'),
+          '3',
+          'Must keep non-admin users statistics after admin user is deleted');
+
+-- Test case: must delete statistics on non-admin user delete
+DELETE FROM events.user
+WHERE email = 'test3@test.com';
+
+SELECT is((SELECT value::text
+           FROM statistics.system_counters
+           WHERE name = 'non_admin_users'),
+          '2',
+          'Must decrease non-admin users statistics after non-admin user is deleted');
 
 -- Finish the test
 SELECT *
