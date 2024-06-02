@@ -281,7 +281,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER trg_create_event_statistics_on_event_insert
+CREATE TRIGGER trg_update_event_statistics_on_event_insert
     AFTER INSERT
     ON events.event
     FOR EACH ROW
