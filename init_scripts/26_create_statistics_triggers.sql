@@ -339,7 +339,7 @@ CREATE TRIGGER trg_update_event_statistics_on_event_delete
 EXECUTE PROCEDURE events.update_location_statistics_on_event_delete();
 
 -- Update the number of non-admin users on user insert
-CREATE FUNCTION events.update_non_admin_users_on_user_delete() RETURNS TRIGGER AS
+CREATE FUNCTION events.update_non_admin_users_on_user_insert() RETURNS TRIGGER AS
 $$
 BEGIN
     IF NEW.roles LIKE '%admin%' THEN
@@ -358,7 +358,7 @@ CREATE TRIGGER trg_update_non_admin_users_on_user_insert
     AFTER INSERT
     ON events.User
     FOR EACH ROW
-EXECUTE PROCEDURE events.update_non_admin_users_on_user_delete();
+EXECUTE PROCEDURE events.update_non_admin_users_on_user_insert();
 
 -- Update the number of non-admin users on user update
 CREATE FUNCTION events.update_non_admin_users_on_user_update() RETURNS TRIGGER AS
@@ -381,13 +381,13 @@ END;
 $$ LANGUAGE plpgsql;
 
 CREATE TRIGGER trg_update_non_admin_users_on_user_update
-    AFTER INSERT
+    AFTER UPDATE
     ON events.User
     FOR EACH ROW
-EXECUTE PROCEDURE events.update_non_admin_users_on_user_delete();
+EXECUTE PROCEDURE events.update_non_admin_users_on_user_update();
 
 -- Update the number of non-admin users on user delete
-CREATE FUNCTION events.update_non_admin_users_on_user_update() RETURNS TRIGGER AS
+CREATE FUNCTION events.update_non_admin_users_on_user_delete() RETURNS TRIGGER AS
 $$
 BEGIN
     IF OLD.roles NOT LIKE '%admin%'THEN
@@ -400,8 +400,8 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER trg_update_non_admin_users_on_user_update
-    AFTER INSERT
+CREATE TRIGGER trg_update_non_admin_users_on_user_delete
+    AFTER DELETE
     ON events.User
     FOR EACH ROW
 EXECUTE PROCEDURE events.update_non_admin_users_on_user_delete();
