@@ -440,4 +440,4 @@ CREATE TRIGGER trg_update_transaction_statistics_on_transaction_delete
     AFTER DELETE
     ON events.Transaction
     FOR EACH ROW
-EXECUTE PROCEDURE events.update_transaction_statistics_on_transaction_insert();
+EXECUTE PROCEDURE events.update_transaction_statistics_on_transaction_delete();

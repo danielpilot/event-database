@@ -3,7 +3,7 @@
 SET SEARCH_PATH TO public, events;
 
 BEGIN;
-SELECT plan(49);
+SELECT plan(51);
 
 -- Populate database
 INSERT INTO events.User (name, surname, email, password, roles)
@@ -597,7 +597,7 @@ SELECT is((SELECT value::text
            FROM statistics.system_counters
            WHERE name = 'non_admin_users'),
           '4',
-          'Must keep non-admin users statistics after admin user is changed to non-admin');
+          'Must increase non-admin users statistics after admin user is changed to non-admin');
 
 -- Test case: must decrease non-admin users count when non-admin user is updated into admin
 UPDATE events.user
@@ -611,7 +611,8 @@ SELECT is((SELECT value::text
           'Must decrease non-admin users statistics after non-admin user is changed to admin');
 
 -- Test case: must keep statistics on admin user delete
-DELETE FROM events.user
+DELETE
+FROM events.user
 WHERE email = 'test4@test.com';
 
 SELECT is((SELECT value::text
@@ -621,7 +622,8 @@ SELECT is((SELECT value::text
           'Must keep non-admin users statistics after admin user is deleted');
 
 -- Test case: must delete statistics on non-admin user delete
-DELETE FROM events.user
+DELETE
+FROM events.user
 WHERE email = 'test3@test.com';
 
 SELECT is((SELECT value::text
@@ -629,6 +631,62 @@ SELECT is((SELECT value::text
            WHERE name = 'non_admin_users'),
           '2',
           'Must decrease non-admin users statistics after non-admin user is deleted');
+
+-- Test case: must increase total transactions when transaction is created
+INSERT INTO events.Event (name,
+                          start_date,
+                          end_date,
+                          schedule,
+                          description,
+                          price,
+                          event_status,
+                          event_published,
+                          event_has_sales,
+                          comments,
+                          organizer_id,
+                          location_id)
+VALUES ('TestEvent',
+        NOW(),
+        NOW(),
+        '',
+        '',
+        0.0,
+        true,
+        true,
+        true,
+        true,
+        (SELECT id FROM events.organizer WHERE name = 'TestOrganizer'),
+        (SELECT id FROM events.Location WHERE name = 'TestLocation'));
+INSERT INTO event_with_sales (event_id, capacity, maximum_per_sale)
+VALUES ((SELECT id FROM events.Event WHERE name = 'TestEvent'),
+        100,
+        10);
+
+INSERT INTO events.transaction (event_id, user_id, unit_price, quantity, reference)
+VALUES ((SELECT id::integer
+         FROM events.event_with_sales
+         WHERE event_id = (SELECT id::integer FROM events.Event WHERE name = 'TestEvent' LIMIT 1)
+         LIMIT 1),
+        (SELECT id::integer FROM events.user WHERE email = 'test@test.com'),
+        12.0,
+        2,
+        'ref');
+
+SELECT is((SELECT value::text
+           FROM statistics.system_counters
+           WHERE name = 'total_transactions'),
+          '1',
+          'Must increase total transactions statistics when transaction is created');
+
+-- Test case: must decrease total transactions when transaction is deleted
+DELETE FROM events.transaction
+WHERE reference = 'ref';
+
+SELECT is((SELECT value::text
+           FROM statistics.system_counters
+           WHERE name = 'total_transactions'),
+          '0',
+          'Must decrease total transactions statistics when transaction is deleted');
 
 -- Finish the test
 SELECT *
