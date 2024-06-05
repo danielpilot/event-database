@@ -3,7 +3,7 @@
 SET SEARCH_PATH TO public, events;
 
 BEGIN;
-SELECT plan(51);
+SELECT plan(59);
 
 -- Populate database
 INSERT INTO events.User (name, surname, email, password, roles)
@@ -578,61 +578,7 @@ SELECT is((SELECT value::text
           '3',
           'Must create non-admin users statistics correctly');
 
--- Test case: must keep non-admin users count when admin user is created
-INSERT INTO events.User (name, surname, email, password, roles)
-VALUES ('test4', 'test4', 'test4@test.com', 'password4', 'admin');
-
-SELECT is((SELECT value::text
-           FROM statistics.system_counters
-           WHERE name = 'non_admin_users'),
-          '3',
-          'Must keep non-admin users statistics after admin user insert');
-
--- Test case: must keep non-admin users count when admin user is updated into non-admin
-UPDATE events.user
-SET roles = 'user'
-WHERE email = 'test4@test.com';
-
-SELECT is((SELECT value::text
-           FROM statistics.system_counters
-           WHERE name = 'non_admin_users'),
-          '4',
-          'Must increase non-admin users statistics after admin user is changed to non-admin');
-
--- Test case: must decrease non-admin users count when non-admin user is updated into admin
-UPDATE events.user
-SET roles = 'user,admin'
-WHERE email = 'test4@test.com';
-
-SELECT is((SELECT value::text
-           FROM statistics.system_counters
-           WHERE name = 'non_admin_users'),
-          '3',
-          'Must decrease non-admin users statistics after non-admin user is changed to admin');
-
--- Test case: must keep statistics on admin user delete
-DELETE
-FROM events.user
-WHERE email = 'test4@test.com';
-
-SELECT is((SELECT value::text
-           FROM statistics.system_counters
-           WHERE name = 'non_admin_users'),
-          '3',
-          'Must keep non-admin users statistics after admin user is deleted');
-
--- Test case: must delete statistics on non-admin user delete
-DELETE
-FROM events.user
-WHERE email = 'test3@test.com';
-
-SELECT is((SELECT value::text
-           FROM statistics.system_counters
-           WHERE name = 'non_admin_users'),
-          '2',
-          'Must decrease non-admin users statistics after non-admin user is deleted');
-
--- Test case: must increase total transactions when transaction is created
+-- Test case: must update average transactions per user when transaction is created
 INSERT INTO events.Event (name,
                           start_date,
                           end_date,
@@ -673,13 +619,124 @@ VALUES ((SELECT id::integer
         'ref');
 
 SELECT is((SELECT value::text
+           FROM statistics.percentage_indicators
+           WHERE indicator = 2),
+          '0.33',
+          'Must update average transactions per user when transaction is created');
+
+-- Test case: must update average transactions per user when non admin user is created
+INSERT INTO events.User (name, surname, email, password, roles)
+VALUES ('test4', 'test4', 'test4@test.com', 'password4', 'user');
+
+SELECT is((SELECT value::text
+           FROM statistics.percentage_indicators
+           WHERE indicator = 2),
+          '0.25',
+          'Must update average transactions per user when non admin user is created');
+
+DELETE
+FROM events.User
+WHERE email = 'test4@test.com';
+
+-- Test case: must keep non-admin users count when admin user is created
+INSERT INTO events.User (name, surname, email, password, roles)
+VALUES ('test4', 'test4', 'test4@test.com', 'password4', 'admin');
+
+SELECT is((SELECT value::text
+           FROM statistics.system_counters
+           WHERE name = 'non_admin_users'),
+          '3',
+          'Must keep non-admin users statistics after admin user insert');
+
+-- Test case: must keep average transactions per user when non admin user is created
+SELECT is((SELECT value::text
+           FROM statistics.percentage_indicators
+           WHERE indicator = 2),
+          '0.33',
+          'Must keep average transactions per user when non admin user is created');
+
+-- Test case: must increase non-admin users count when admin user is updated into non-admin
+UPDATE events.user
+SET roles = 'user'
+WHERE email = 'test4@test.com';
+
+SELECT is((SELECT value::text
+           FROM statistics.system_counters
+           WHERE name = 'non_admin_users'),
+          '4',
+          'Must increase non-admin users statistics after admin user is changed to non-admin');
+
+-- Test case: must update average transactions per user when admin user is updated into non-admin
+SELECT is((SELECT value::text
+           FROM statistics.percentage_indicators
+           WHERE indicator = 2),
+          '0.25',
+          'Must update average transactions per user after admin user is changed to non-admin');
+
+-- Test case: must decrease non-admin users count when non-admin user is updated into admin
+UPDATE events.user
+SET roles = 'user,admin'
+WHERE email = 'test4@test.com';
+
+SELECT is((SELECT value::text
+           FROM statistics.system_counters
+           WHERE name = 'non_admin_users'),
+          '3',
+          'Must decrease non-admin users statistics after non-admin user is changed to admin');
+
+-- Test case: must update average transactions per user when non-admin user is updated into admin
+SELECT is((SELECT value::text
+           FROM statistics.percentage_indicators
+           WHERE indicator = 2),
+          '0.33',
+          'Must update average transactions per user after non-admin user is changed to admin');
+
+-- Test case: must keep statistics on admin user delete
+DELETE
+FROM events.user
+WHERE email = 'test4@test.com';
+
+SELECT is((SELECT value::text
+           FROM statistics.system_counters
+           WHERE name = 'non_admin_users'),
+          '3',
+          'Must keep non-admin users statistics after admin user is deleted');
+
+-- Test case: must keep average transactions per user when admin user is deleted
+SELECT is((SELECT value::text
+           FROM statistics.percentage_indicators
+           WHERE indicator = 2),
+          '0.33',
+          'Must keep average transactions per user after admin user is deleted');
+
+-- Test case: must delete statistics on non-admin user delete
+DELETE
+FROM events.user
+WHERE email = 'test3@test.com';
+
+SELECT is((SELECT value::text
+           FROM statistics.system_counters
+           WHERE name = 'non_admin_users'),
+          '2',
+          'Must decrease non-admin users statistics after non-admin user is deleted');
+
+-- Test case: must update average transactions per user when non-admin user is deleted
+SELECT is((SELECT value::text
+           FROM statistics.percentage_indicators
+           WHERE indicator = 2),
+          '0.5',
+          'Must update average transactions per user after non-admin user is deleted');
+
+-- Test case: must increase total transactions when transaction is created
+SELECT is((SELECT value::text
            FROM statistics.system_counters
            WHERE name = 'total_transactions'),
           '1',
           'Must increase total transactions statistics when transaction is created');
 
 -- Test case: must decrease total transactions when transaction is deleted
-DELETE FROM events.transaction
+DELETE
+FROM events.transaction
 WHERE reference = 'ref';
 
 SELECT is((SELECT value::text
@@ -687,6 +744,13 @@ SELECT is((SELECT value::text
            WHERE name = 'total_transactions'),
           '0',
           'Must decrease total transactions statistics when transaction is deleted');
+
+-- Test case: must update average transactions per user when transaction is deleted
+SELECT is((SELECT value::text
+           FROM statistics.percentage_indicators
+           WHERE indicator = 2),
+          '0',
+          'Must update average transactions per user when transaction is deleted');
 
 -- Finish the test
 SELECT *

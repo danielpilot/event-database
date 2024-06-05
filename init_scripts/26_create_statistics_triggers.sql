@@ -136,10 +136,22 @@ $$ LANGUAGE plpgsql;
 
 CREATE FUNCTION statistics.update_average_transactions_per_user() RETURNS VOID AS
 $$
+DECLARE
+    _non_admin_users    INTEGER;
+    _total_transactions INTEGER;
 BEGIN
+    SELECT value::integer INTO _non_admin_users FROM statistics.system_counters WHERE name = 'non_admin_users';
+    SELECT value::integer INTO _total_transactions FROM statistics.system_counters WHERE name = 'total_transactions';
+
+    IF _non_admin_users = 0 THEN
+        UPDATE statistics.percentage_indicators
+        SET value = 0.0
+        WHERE indicator = 2;
+        RETURN;
+    END IF;
+
     UPDATE statistics.percentage_indicators
-    SET value = (SELECT value::integer FROM system_counters WHERE name = 'total_transactions') /
-                (SELECT value::integer FROM system_counters WHERE name = 'non_admin_users')
+    SET value = ROUND((_total_transactions::real / _non_admin_users::real)::numeric, 2)
     WHERE indicator = 2;
 END;
 $$ LANGUAGE plpgsql;
