@@ -47,3 +47,7 @@ INSERT INTO logs.Procedure (name, description) VALUES ('create_location', 'Creat
 INSERT INTO statistics.system_counters (name, value)
 VALUES ('non_admin_users', 0),
        ('total_transactions', 0);
+
+-- Load initial percentage indicator list
+INSERT INTO statistics.percentage_indicators (indicator, value)
+VALUES (2, 0.0);

@@ -134,6 +134,16 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+CREATE FUNCTION statistics.update_average_transactions_per_user() RETURNS VOID AS
+$$
+BEGIN
+    UPDATE statistics.percentage_indicators
+    SET value = (SELECT value::integer FROM system_counters WHERE name = 'total_transactions') /
+                (SELECT value::integer FROM system_counters WHERE name = 'non_admin_users')
+    WHERE indicator = 2;
+END;
+$$ LANGUAGE plpgsql;
+
 -- Update event statistics on rating insert
 CREATE FUNCTION events.update_event_statistics_on_rating_insert() RETURNS TRIGGER AS
 $$
@@ -350,6 +360,8 @@ BEGIN
     SET value = value + 1
     WHERE name = 'non_admin_users';
 
+    PERFORM statistics.update_average_transactions_per_user();
+
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
@@ -376,6 +388,8 @@ BEGIN
         WHERE name = 'non_admin_users';
     END IF;
 
+    PERFORM statistics.update_average_transactions_per_user();
+
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
@@ -396,6 +410,8 @@ BEGIN
         WHERE name = 'non_admin_users';
     END IF;
 
+    PERFORM statistics.update_average_transactions_per_user();
+
     RETURN OLD;
 END;
 $$ LANGUAGE plpgsql;
@@ -414,6 +430,8 @@ BEGIN
     SET value = value + 1
     WHERE name = 'total_transactions';
 
+    PERFORM statistics.update_average_transactions_per_user();
+
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
@@ -431,6 +449,8 @@ BEGIN
     UPDATE statistics.system_counters
     SET value = value - 1
     WHERE name = 'total_transactions';
+
+    PERFORM statistics.update_average_transactions_per_user();
 
     RETURN NEW;
 END;
