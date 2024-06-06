@@ -69,7 +69,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE FUNCTION events.increase_statistics_location(
+CREATE FUNCTION events.increase_statistic_location(
     _location_id INTEGER
 ) RETURNS VOID AS
 $$
@@ -84,11 +84,11 @@ BEGIN
         VALUES (_location_id, 1);
     END IF;
 
-    PERFORM events.increase_statistics_city((SELECT city_id::integer FROM events.location WHERE id = _location_id));
+    PERFORM events.increase_statistic_city((SELECT city_id::integer FROM events.location WHERE id = _location_id));
 END;
 $$ language plpgsql;
 
-CREATE FUNCTION events.decrease_statistics_location(
+CREATE FUNCTION events.decrease_statistic_location(
     _location_id INTEGER
 ) RETURNS VOID AS
 $$
@@ -99,12 +99,12 @@ BEGIN
         WHERE location_id = _location_id;
     END IF;
 
-    PERFORM events.decrease_statistics_city((SELECT city_id::integer FROM events.location WHERE id = _location_id));
+    PERFORM events.decrease_statistic_city((SELECT city_id::integer FROM events.location WHERE id = _location_id));
 END;
 
 $$ language plpgsql;
 
-CREATE FUNCTION events.increase_statistics_city(
+CREATE FUNCTION events.increase_statistic_city(
     _city_id INTEGER
 ) RETURNS VOID AS
 $$
@@ -121,7 +121,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE FUNCTION events.decrease_statistics_city(
+CREATE FUNCTION events.decrease_statistic_city(
     _city_id INTEGER
 ) RETURNS VOID AS
 $$
@@ -153,6 +153,24 @@ BEGIN
     UPDATE statistics.percentage_indicators
     SET value = ROUND((_total_transactions::real / _non_admin_users::real)::numeric, 2)
     WHERE indicator = 2;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE FUNCTION events.increase_statistic_event_counter() RETURNS VOID AS
+$$
+BEGIN
+    UPDATE statistics.system_counters
+    SET value = value + 1
+    WHERE name = 'total_events';
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE FUNCTION events.decrease_statistic_event_counter() RETURNS VOID AS
+$$
+BEGIN
+    UPDATE statistics.system_counters
+    SET value = value - 1
+    WHERE name = 'total_events';
 END;
 $$ LANGUAGE plpgsql;
 
@@ -297,7 +315,8 @@ BEGIN
         RETURN NEW;
     END IF;
 
-    PERFORM events.increase_statistics_location(NEW.location_id);
+    PERFORM events.increase_statistic_location(NEW.location_id);
+    PERFORM events.increase_statistic_event_counter();
 
     RETURN NEW;
 END;
@@ -314,12 +333,16 @@ CREATE FUNCTION events.update_location_statistics_on_event_update() RETURNS TRIG
 $$
 BEGIN
     IF (NEW.event_published AND NEW.event_status) AND NOT (OLD.event_published AND NEW.event_status) THEN
-        PERFORM events.increase_statistics_location(NEW.location_id);
+        PERFORM events.increase_statistic_location(NEW.location_id);
+        PERFORM events.increase_statistic_event_counter();
+
         RETURN NEW;
     END IF;
 
     IF (OLD.event_published AND OLD.event_status) AND NOT (NEW.event_published AND NEW.event_status) THEN
-        PERFORM events.decrease_statistics_location(OLD.location_id);
+        PERFORM events.decrease_statistic_location(OLD.location_id);
+        PERFORM events.decrease_statistic_event_counter();
+
         RETURN NEW;
     END IF;
 
@@ -327,8 +350,8 @@ BEGIN
         RETURN NEW;
     END IF;
 
-    PERFORM events.increase_statistics_location(NEW.location_id);
-    PERFORM events.decrease_statistics_location(OLD.location_id);
+    PERFORM events.increase_statistic_location(NEW.location_id);
+    PERFORM events.decrease_statistic_location(OLD.location_id);
 
     RETURN NEW;
 END;
@@ -348,7 +371,8 @@ BEGIN
         RETURN OLD;
     END IF;
 
-    PERFORM events.decrease_statistics_location(OLD.location_id);
+    PERFORM events.decrease_statistic_location(OLD.location_id);
+    PERFORM events.decrease_statistic_event_counter();
 
     RETURN OLD;
 END;
