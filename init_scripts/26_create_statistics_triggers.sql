@@ -174,6 +174,46 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+CREATE FUNCTION events.increase_statistic_event_sales_counter() RETURNS VOID AS
+$$
+BEGIN
+    UPDATE statistics.system_counters
+    SET value = value + 1
+    WHERE name = 'total_payed_events';
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE FUNCTION events.decrease_statistic_event_sales_counter() RETURNS VOID AS
+$$
+BEGIN
+    UPDATE statistics.system_counters
+    SET value = value - 1
+    WHERE name = 'total_payed_events';
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE FUNCTION events.update_average_transactions_per_user() RETURNS VOID AS
+$$
+DECLARE
+    _total_events       INTEGER;
+    _total_payed_events INTEGER;
+BEGIN
+    SELECT value::integer INTO _total_events FROM statistics.system_counters WHERE name = 'total_events';
+    SELECT value::integer INTO _total_payed_events FROM statistics.system_counters WHERE name = 'total_payed_events';
+
+    IF _total_events = 0 THEN
+        UPDATE statistics.percentage_indicators
+        SET value = 0.0
+        WHERE indicator = 3;
+        RETURN;
+    END IF;
+
+    UPDATE statistics.percentage_indicators
+    SET value = ROUND(((_total_events::real / _total_payed_events::real) * 100)::numeric, 2)
+    WHERE indicator = 3;
+END;
+$$ LANGUAGE plpgsql;
+
 -- Update event statistics on rating insert
 CREATE FUNCTION events.update_event_statistics_on_rating_insert() RETURNS TRIGGER AS
 $$
@@ -318,6 +358,10 @@ BEGIN
     PERFORM events.increase_statistic_location(NEW.location_id);
     PERFORM events.increase_statistic_event_counter();
 
+    IF NEW.event_has_sales THEN
+        PERFORM events.increase_statistic_event_sales_counter();
+    END IF;
+
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
@@ -336,12 +380,20 @@ BEGIN
         PERFORM events.increase_statistic_location(NEW.location_id);
         PERFORM events.increase_statistic_event_counter();
 
+        IF NEW.event_has_sales THEN
+            PERFORM events.increase_statistic_event_sales_counter();
+        END IF;
+
         RETURN NEW;
     END IF;
 
     IF (OLD.event_published AND OLD.event_status) AND NOT (NEW.event_published AND NEW.event_status) THEN
         PERFORM events.decrease_statistic_location(OLD.location_id);
         PERFORM events.decrease_statistic_event_counter();
+
+        IF OLD.event_has_sales THEN
+            PERFORM events.decrease_statistic_event_sales_counter();
+        END IF;
 
         RETURN NEW;
     END IF;
@@ -373,6 +425,10 @@ BEGIN
 
     PERFORM events.decrease_statistic_location(OLD.location_id);
     PERFORM events.decrease_statistic_event_counter();
+
+    IF OLD.event_has_sales THEN
+        PERFORM events.increase_statistic_event_sales_counter();
+    END IF;
 
     RETURN OLD;
 END;

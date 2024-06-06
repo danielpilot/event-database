@@ -11,3 +11,9 @@ CREATE VIEW statistics.average_transactions_per_user AS
 SELECT value
 FROM statistics.percentage_indicators
 WHERE indicator = 2;
+
+-- Create view to show the percentage of payed events in the system
+CREATE VIEW statistics.payed_events_percentage AS
+SELECT value
+FROM statistics.percentage_indicators
+WHERE indicator = 3;
