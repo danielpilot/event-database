@@ -192,7 +192,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE FUNCTION events.update_average_transactions_per_user() RETURNS VOID AS
+CREATE FUNCTION events.update_payed_events_percentage() RETURNS VOID AS
 $$
 DECLARE
     _total_events       INTEGER;
@@ -362,6 +362,8 @@ BEGIN
         PERFORM events.increase_statistic_event_sales_counter();
     END IF;
 
+    PERFORM events.update_payed_events_percentage();
+
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
@@ -384,6 +386,8 @@ BEGIN
             PERFORM events.increase_statistic_event_sales_counter();
         END IF;
 
+        PERFORM events.update_payed_events_percentage();
+
         RETURN NEW;
     END IF;
 
@@ -394,6 +398,8 @@ BEGIN
         IF OLD.event_has_sales THEN
             PERFORM events.decrease_statistic_event_sales_counter();
         END IF;
+
+        PERFORM events.update_payed_events_percentage();
 
         RETURN NEW;
     END IF;
@@ -429,6 +435,8 @@ BEGIN
     IF OLD.event_has_sales THEN
         PERFORM events.increase_statistic_event_sales_counter();
     END IF;
+
+    PERFORM events.update_payed_events_percentage();
 
     RETURN OLD;
 END;
