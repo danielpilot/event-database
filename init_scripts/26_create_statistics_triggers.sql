@@ -209,7 +209,7 @@ BEGIN
     END IF;
 
     UPDATE statistics.percentage_indicators
-    SET value = ROUND(((_total_events::real / _total_payed_events::real) * 100)::numeric, 2)
+    SET value = ROUND(((_total_payed_events::real / _total_events::real) * 100)::numeric, 2)
     WHERE indicator = 3;
 END;
 $$ LANGUAGE plpgsql;
