@@ -347,8 +347,8 @@ CREATE TRIGGER trg_update_event_statistics_on_favorite_delete
     FOR EACH ROW
 EXECUTE PROCEDURE events.update_event_statistics_on_favorite_delete();
 
--- Create location statistics on event create
-CREATE FUNCTION events.update_location_statistics_on_event_insert() RETURNS TRIGGER AS
+-- Update event statistics on event create
+CREATE FUNCTION events.update_event_statistics_on_event_insert() RETURNS TRIGGER AS
 $$
 BEGIN
     IF NOT (NEW.event_published AND NEW.event_status) THEN
@@ -372,10 +372,10 @@ CREATE TRIGGER trg_update_event_statistics_on_event_insert
     AFTER INSERT
     ON events.event
     FOR EACH ROW
-EXECUTE PROCEDURE events.update_location_statistics_on_event_insert();
+EXECUTE PROCEDURE events.update_event_statistics_on_event_insert();
 
 -- Update location statistics on event update
-CREATE FUNCTION events.update_location_statistics_on_event_update() RETURNS TRIGGER AS
+CREATE FUNCTION events.update_event_statistics_on_event_update() RETURNS TRIGGER AS
 $$
 BEGIN
     IF (NEW.event_published AND NEW.event_status) AND NOT (OLD.event_published AND NEW.event_status) THEN
@@ -419,7 +419,7 @@ CREATE TRIGGER trg_update_event_statistics_on_event_update
     AFTER UPDATE
     ON events.event
     FOR EACH ROW
-EXECUTE PROCEDURE events.update_location_statistics_on_event_update();
+EXECUTE PROCEDURE events.update_event_statistics_on_event_update();
 
 -- Update location statistics on event delete
 CREATE FUNCTION events.update_location_statistics_on_event_delete() RETURNS TRIGGER AS
