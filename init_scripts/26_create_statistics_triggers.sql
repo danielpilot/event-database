@@ -192,6 +192,43 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+CREATE FUNCTION events.update_average_price(
+    _event_price REAL,
+    _is_increment BOOLEAN
+) RETURNS VOID AS
+$$
+DECLARE
+    _total_price        INTEGER;
+    _total_payed_events INTEGER;
+BEGIN
+    IF _is_increment THEN
+        UPDATE statistics.percentage_indicators
+        SET value = value + _event_price
+        WHERE indicator = 4;
+    ELSE
+        UPDATE statistics.percentage_indicators
+        SET value = value - _event_price
+        WHERE indicator = 4;
+    END IF;
+
+    SELECT value INTO _total_payed_events FROM statistics.system_counters WHERE name = 'total_payed_events';
+
+    IF (_total_payed_events = 0) THEN
+        UPDATE statistics.percentage_indicators
+        SET value = 0.0
+        WHERE indicator = 1;
+
+        RETURN;
+    END IF;
+
+    SELECT value INTO _total_price FROM statistics.percentage_indicators WHERE indicator = 4;
+
+    UPDATE statistics.percentage_indicators
+    SET value = ROUND((_event_price::real / _total_payed_events::real)::numeric, 2)
+    WHERE indicator = 1;
+END;
+$$ LANGUAGE plpgsql;
+
 CREATE FUNCTION events.update_payed_events_percentage() RETURNS VOID AS
 $$
 DECLARE
@@ -360,6 +397,7 @@ BEGIN
 
     IF NEW.event_has_sales THEN
         PERFORM events.increase_statistic_event_sales_counter();
+        PERFORM events.update_average_price(NEW.price, TRUE);
     END IF;
 
     PERFORM events.update_payed_events_percentage();
@@ -386,6 +424,7 @@ BEGIN
 
         IF NEW.event_has_sales THEN
             PERFORM events.increase_statistic_event_sales_counter();
+            PERFORM events.update_average_price(NEW.price, TRUE);
         END IF;
 
         PERFORM events.update_payed_events_percentage();
@@ -401,6 +440,7 @@ BEGIN
 
         IF OLD.event_has_sales THEN
             PERFORM events.decrease_statistic_event_sales_counter();
+            PERFORM events.update_average_price(OLD.price, FALSE);
         END IF;
 
         PERFORM events.update_payed_events_percentage();
@@ -410,6 +450,18 @@ BEGIN
 
     IF NEW.location_id = OLD.location_id THEN
         RETURN NEW;
+    END IF;
+
+    IF (OLD.event_has_sales AND NOT NEW.event_has_sales) THEN
+        PERFORM events.update_average_price(OLD.price, FALSE);
+    END IF;
+
+    IF (NOT OLD.event_has_sales AND NEW.event_has_sales) THEN
+        PERFORM events.update_average_price(OLD.price, TRUE);
+    END IF;
+
+    IF (OLD.event_has_sales AND COALESCE(NEW.event_has_sales, OLD.event_has_sales)) THEN
+        PERFORM events.update_average_price(NEW.price - OLD.price, TRUE);
     END IF;
 
     PERFORM events.increase_statistic_location(NEW.location_id);
@@ -438,6 +490,7 @@ BEGIN
 
     IF OLD.event_has_sales THEN
         PERFORM events.increase_statistic_event_sales_counter();
+        PERFORM events.update_average_price(OLD.price, FALSE);
     END IF;
 
     PERFORM events.update_payed_events_percentage();
