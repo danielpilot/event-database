@@ -3,7 +3,7 @@
 SET SEARCH_PATH TO public, events;
 
 BEGIN;
-SELECT plan(59);
+SELECT plan(89);
 
 -- Populate database
 INSERT INTO events.User (name, surname, email, password, roles)
@@ -330,6 +330,24 @@ SELECT is((SELECT COUNT(*)::text
           '0',
           'Must have not created statistics for city when cancelled event was created');
 
+SELECT is((SELECT value::text
+           FROM statistics.system_counters
+           WHERE name = 'total_events'),
+       '0',
+       'Must keep total events counter when cancelled event is created');
+
+SELECT is((SELECT value::text
+           FROM statistics.system_counters
+           WHERE name = 'total_payed_events'),
+       '0',
+       'Must keep total event sales counter when cancelled event is created');
+
+SELECT is((SELECT value::text
+           FROM statistics.percentage_indicators
+           WHERE indicator = 3),
+       '0',
+       'Must keep total payed events percentage when cancelled event is created');
+
 -- Test case: must create statistics when event is created
 INSERT INTO events.Event (name,
                           start_date,
@@ -368,6 +386,24 @@ SELECT is((SELECT events::text
           '1',
           'Must create statistics for city when event is created');
 
+SELECT is((SELECT value::text
+           FROM statistics.system_counters
+           WHERE name = 'total_events'),
+       '1',
+       'Must increase total events counter when event is created');
+
+SELECT is((SELECT value::text
+           FROM statistics.system_counters
+           WHERE name = 'total_payed_events'),
+       '1',
+       'Must increase total event sales counter when event is created');
+
+SELECT is((SELECT value::text
+           FROM statistics.percentage_indicators
+           WHERE indicator = 3),
+       '100',
+       'Must update total payed events percentage when event is created');
+
 -- Test case: must increase statistics when event is created
 INSERT INTO events.Event (name,
                           start_date,
@@ -389,7 +425,7 @@ VALUES ('TestEvent5',
         0.0,
         true,
         true,
-        true,
+        false,
         true,
         (SELECT id FROM events.organizer WHERE name = 'TestOrganizer'),
         (SELECT id FROM events.Location WHERE name = 'TestLocation'));
@@ -405,6 +441,24 @@ SELECT is((SELECT events::text
            WHERE city_id = (SELECT id::integer FROM events.city WHERE name = 'TestCity' LIMIT 1)),
           '2',
           'Must increase statistics for city when event is created');
+
+SELECT is((SELECT value::text
+           FROM statistics.system_counters
+           WHERE name = 'total_events'),
+       '2',
+       'Must increase total events counter when non-payed event is created');
+
+SELECT is((SELECT value::text
+           FROM statistics.system_counters
+           WHERE name = 'total_payed_events'),
+       '1',
+       'Must not increase total event sales counter when non-payed event is created');
+
+SELECT is((SELECT value::text
+           FROM statistics.percentage_indicators
+           WHERE indicator = 3),
+       '50',
+       'Must update total payed events percentage when non-payed event is created');
 
 -- Test case: must increase statistics when unpublished event gets published
 UPDATE events.Event
@@ -423,7 +477,25 @@ SELECT is((SELECT events::text
           '3',
           'Must increase statistics for city when event is published');
 
--- Test case: must increase statistics when unpublished event gets programmed
+SELECT is((SELECT value::text
+           FROM statistics.system_counters
+           WHERE name = 'total_events'),
+       '3',
+       'Must increase total events counter when event is published');
+
+SELECT is((SELECT value::text
+           FROM statistics.system_counters
+           WHERE name = 'total_payed_events'),
+       '1',
+       'Must not increase total event sales counter when event without sales is published');
+
+SELECT is((SELECT value::text
+           FROM statistics.percentage_indicators
+           WHERE indicator = 3),
+       '33.33',
+       'Must update total payed events percentage when event is published');
+
+-- Test case: must increase statistics when cancelled event gets programmed
 UPDATE events.Event
 SET event_status = true
 WHERE name = 'TestEvent3';
@@ -431,14 +503,32 @@ WHERE name = 'TestEvent3';
 SELECT is((SELECT events::text
            FROM statistics.location_statistics
            WHERE location_id = (SELECT id::integer FROM events.location WHERE name = 'TestLocation' LIMIT 1)),
-          '3',
+          '4',
           'Must increase statistics for location when event is programmed');
 
 SELECT is((SELECT events::text
            FROM statistics.city_statistics
            WHERE city_id = (SELECT id::integer FROM events.city WHERE name = 'TestCity' LIMIT 1)),
-          '3',
+          '4',
           'Must increase statistics for city when event is programmed');
+
+SELECT is((SELECT value::text
+           FROM statistics.system_counters
+           WHERE name = 'total_events'),
+       '4',
+       'Must increase total events counter when event is programmed');
+
+SELECT is((SELECT value::text
+           FROM statistics.system_counters
+           WHERE name = 'total_payed_events'),
+       '1',
+       'Must update total event sales counter when event is programmed');
+
+SELECT is((SELECT value::text
+           FROM statistics.percentage_indicators
+           WHERE indicator = 3),
+       '25',
+       'Must update total payed events percentage when event is programmed');
 
 -- Test case: must decrease statistics when published event gets unpublished
 UPDATE events.Event
@@ -448,14 +538,32 @@ WHERE name = 'TestEvent';
 SELECT is((SELECT events::text
            FROM statistics.location_statistics
            WHERE location_id = (SELECT id::integer FROM events.location WHERE name = 'TestLocation' LIMIT 1)),
-          '2',
+          '3',
           'Must decrease statistics for location when event is unpublished');
 
 SELECT is((SELECT events::text
            FROM statistics.city_statistics
            WHERE city_id = (SELECT id::integer FROM events.city WHERE name = 'TestCity' LIMIT 1)),
-          '2',
+          '3',
           'Must decrease statistics for city when event is unpublished');
+
+SELECT is((SELECT value::text
+           FROM statistics.system_counters
+           WHERE name = 'total_events'),
+       '3',
+       'Must decrease total events counter when event is unpublished');
+
+SELECT is((SELECT value::text
+           FROM statistics.system_counters
+           WHERE name = 'total_payed_events'),
+       '1',
+       'Must keep total event sales counter when event without sales is unpublished');
+
+SELECT is((SELECT value::text
+           FROM statistics.percentage_indicators
+           WHERE indicator = 3),
+       '33.33',
+       'Must update total payed events percentage when event is unpublished');
 
 -- Test case: must decrease statistics when event is cancelled
 UPDATE events.Event
@@ -465,14 +573,32 @@ WHERE name = 'TestEvent3';
 SELECT is((SELECT events::text
            FROM statistics.location_statistics
            WHERE location_id = (SELECT id::integer FROM events.location WHERE name = 'TestLocation' LIMIT 1)),
-          '1',
+          '2',
           'Must decrease statistics for location when event is cancelled');
 
 SELECT is((SELECT events::text
            FROM statistics.city_statistics
            WHERE city_id = (SELECT id::integer FROM events.city WHERE name = 'TestCity' LIMIT 1)),
-          '1',
+          '2',
           'Must decrease statistics for city when event is cancelled');
+
+SELECT is((SELECT value::text
+           FROM statistics.system_counters
+           WHERE name = 'total_events'),
+       '2',
+       'Must decrease total events counter when event is cancelled');
+
+SELECT is((SELECT value::text
+           FROM statistics.system_counters
+           WHERE name = 'total_payed_events'),
+       '1',
+       'Must keep total event sales counter when event without sales is cancelled');
+
+SELECT is((SELECT value::text
+           FROM statistics.percentage_indicators
+           WHERE indicator = 3),
+       '50',
+       'Must update total payed events percentage when event is cancelled');
 
 -- Test case: must update statistics when event location is updated
 UPDATE events.Event
@@ -482,13 +608,13 @@ WHERE name = 'TestEvent5';
 SELECT is((SELECT events::text
            FROM statistics.location_statistics
            WHERE location_id = (SELECT id::integer FROM events.location WHERE name = 'TestLocation' LIMIT 1)),
-          '0',
+          '1',
           'Must decrease statistics for location when event location is moved');
 
 SELECT is((SELECT events::text
            FROM statistics.city_statistics
            WHERE city_id = (SELECT id::integer FROM events.city WHERE name = 'TestCity' LIMIT 1)),
-          '0',
+          '1',
           'Must decrease statistics for city when event location is moved');
 
 SELECT is((SELECT events::text
@@ -537,6 +663,24 @@ SELECT is((SELECT events::text
           '1',
           'Must keep statistics for city when cancelled event is deleted');
 
+SELECT is((SELECT value::text
+           FROM statistics.system_counters
+           WHERE name = 'total_events'),
+       '2',
+       'Must keep total events counter when cancelled event is deleted');
+
+SELECT is((SELECT value::text
+           FROM statistics.system_counters
+           WHERE name = 'total_payed_events'),
+       '1',
+       'Must keep total event sales counter when cancelled event is deleted');
+
+SELECT is((SELECT value::text
+           FROM statistics.percentage_indicators
+           WHERE indicator = 3),
+       '50',
+       'Must keep total payed events percentage when cancelled event is deleted');
+
 -- Test case: must keep statistics when unpublished event is deleted
 DELETE
 FROM events.Event
@@ -553,6 +697,24 @@ SELECT is((SELECT events::text
            WHERE city_id = (SELECT id::integer FROM events.city WHERE name = 'TestCity2' LIMIT 1)),
           '1',
           'Must keep statistics for city when unpublished event is deleted');
+
+SELECT is((SELECT value::text
+           FROM statistics.system_counters
+           WHERE name = 'total_events'),
+       '2',
+       'Must keep total events counter when unpublished event is deleted');
+
+SELECT is((SELECT value::text
+           FROM statistics.system_counters
+           WHERE name = 'total_payed_events'),
+       '1',
+       'Must keep total event sales counter when unpublished event is deleted');
+
+SELECT is((SELECT value::text
+           FROM statistics.percentage_indicators
+           WHERE indicator = 3),
+       '50',
+       'Must keep total payed events percentage when unpublished event is deleted');
 
 -- Test case: must decrease statistics when published event is deleted
 DELETE
@@ -577,6 +739,24 @@ SELECT is((SELECT value::text
            WHERE name = 'non_admin_users'),
           '3',
           'Must create non-admin users statistics correctly');
+
+SELECT is((SELECT value::text
+           FROM statistics.system_counters
+           WHERE name = 'total_events'),
+       '1',
+       'Must decrease total events counter when event is deleted');
+
+SELECT is((SELECT value::text
+           FROM statistics.system_counters
+           WHERE name = 'total_payed_events'),
+       '1',
+       'Must keep total event sales counter when event without sales is deleted');
+
+SELECT is((SELECT value::text
+           FROM statistics.percentage_indicators
+           WHERE indicator = 3),
+       '100',
+       'Must update payed events percentage when event is deleted');
 
 -- Test case: must update average transactions per user when transaction is created
 INSERT INTO events.Event (name,

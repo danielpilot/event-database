@@ -314,7 +314,7 @@ EXECUTE PROCEDURE events.update_event_statistics_on_favorite_insert();
 CREATE FUNCTION events.update_event_statistics_on_favorite_update() RETURNS TRIGGER AS
 $$
 BEGIN
-    IF NEW.event_id = OLD.event_id THEN
+    IF COALESCE(NEW.event_id, OLD.event_id) = OLD.event_id THEN
         RETURN NEW;
     END IF;
 
@@ -374,11 +374,13 @@ CREATE TRIGGER trg_update_event_statistics_on_event_insert
     FOR EACH ROW
 EXECUTE PROCEDURE events.update_event_statistics_on_event_insert();
 
--- Update location statistics on event update
+-- Update event statistics on event update
 CREATE FUNCTION events.update_event_statistics_on_event_update() RETURNS TRIGGER AS
 $$
 BEGIN
-    IF (NEW.event_published AND NEW.event_status) AND NOT (OLD.event_published AND NEW.event_status) THEN
+    IF ((COALESCE(NEW.event_published, OLD.event_published) AND COALESCE(NEW.event_status, OLD.event_status))
+        AND NOT (OLD.event_published AND OLD.event_status))
+    THEN
         PERFORM events.increase_statistic_location(NEW.location_id);
         PERFORM events.increase_statistic_event_counter();
 
@@ -391,7 +393,9 @@ BEGIN
         RETURN NEW;
     END IF;
 
-    IF (OLD.event_published AND OLD.event_status) AND NOT (NEW.event_published AND NEW.event_status) THEN
+    IF (OLD.event_published AND OLD.event_status)
+        AND NOT (COALESCE(NEW.event_published, OLD.event_published) AND COALESCE(NEW.event_status, OLD.event_status))
+    THEN
         PERFORM events.decrease_statistic_location(OLD.location_id);
         PERFORM events.decrease_statistic_event_counter();
 
