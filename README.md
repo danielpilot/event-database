@@ -6,7 +6,7 @@ The purpose of the project is to create a database that stores events informatio
 
 This database is designed to be used by applications that track event and location data, and supports the implementation of a user system with ticketing functionality.
 
-## Technologies used
+## Used technologies
 * **Database management system**: PostgreSQL 14. 
 * **Programming languages**: SQL, PL/pgSQL
 * **Database testing**: pgTAP
