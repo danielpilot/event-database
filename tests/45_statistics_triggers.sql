@@ -3,7 +3,7 @@
 SET SEARCH_PATH TO public, events;
 
 BEGIN;
-SELECT plan(117);
+SELECT plan(122);
 
 -- Populate database
 INSERT INTO events.User (name, surname, email, password, roles)
@@ -994,6 +994,14 @@ SELECT is((SELECT value::text
           '0.33',
           'Must update average transactions per user when transaction is created');
 
+-- Test case: update current month transactions when transaction is created
+SELECT is((SELECT transactions::text
+           FROM statistics.transaction_statistics
+           WHERE month = EXTRACT(MONTH FROM CURRENT_DATE)
+             AND year = EXTRACT(YEAR FROM CURRENT_DATE)),
+          '1',
+          'Must update current month transactions when first transaction is created');
+
 -- Test case: must update average transactions per user when non admin user is created
 INSERT INTO events.User (name, surname, email, password, roles)
 VALUES ('test4', 'test4', 'test4@test.com', 'password4', 'user');
@@ -1003,6 +1011,48 @@ SELECT is((SELECT value::text
            WHERE indicator = 2),
           '0.25',
           'Must update average transactions per user when non admin user is created');
+
+-- Test case: must update current month transactions when new transaction is created
+INSERT INTO events.transaction (event_id, user_id, unit_price, quantity, reference)
+VALUES ((SELECT id::integer
+         FROM events.event_with_sales
+         WHERE event_id = (SELECT id::integer FROM events.Event WHERE name = 'TestEvent' LIMIT 1)
+         LIMIT 1),
+        (SELECT id::integer FROM events.user WHERE email = 'test4@test.com'),
+        12.0,
+        2,
+        'ref2');
+
+SELECT is((SELECT transactions::text
+           FROM statistics.transaction_statistics
+           WHERE month = EXTRACT(MONTH FROM CURRENT_DATE)
+             AND year = EXTRACT(YEAR FROM CURRENT_DATE)),
+          '2',
+          'Must update current month transactions when transaction is created');
+
+
+-- Test case: must update transaction statistics on date change
+UPDATE events.transaction
+SET date = NOW() - INTERVAL '1 month'
+WHERE reference = 'ref2';
+
+SELECT is((SELECT transactions::text
+           FROM statistics.transaction_statistics
+           WHERE month = EXTRACT(MONTH FROM CURRENT_DATE)
+             AND year = EXTRACT(YEAR FROM CURRENT_DATE)),
+          '1',
+          'Must update current month transactions when transaction month is moved');
+
+SELECT is((SELECT transactions::text
+           FROM statistics.transaction_statistics
+           WHERE month = EXTRACT(MONTH FROM NOW() - INTERVAL '1 month')
+             AND year = EXTRACT(YEAR FROM NOW() - INTERVAL '1 month')),
+          '1',
+          'Must update new month transactions when transaction month is moved');
+
+DELETE
+FROM events.transaction
+WHERE reference = 'ref2';
 
 DELETE
 FROM events.User
@@ -1114,6 +1164,13 @@ SELECT is((SELECT value::text
            WHERE name = 'total_transactions'),
           '0',
           'Must decrease total transactions statistics when transaction is deleted');
+
+SELECT is((SELECT transactions::text
+           FROM statistics.transaction_statistics
+           WHERE month = EXTRACT(MONTH FROM CURRENT_DATE)
+             AND year = EXTRACT(YEAR FROM CURRENT_DATE)),
+          '0',
+          'Must update current month transactions when transaction is deleted');
 
 -- Test case: must update average transactions per user when transaction is deleted
 SELECT is((SELECT value::text

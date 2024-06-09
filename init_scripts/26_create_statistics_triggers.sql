@@ -251,6 +251,37 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+CREATE FUNCTION statistics.update_transaction_statistics(
+    _transaction_month INTEGER,
+    _transaction_year INTEGER,
+    _is_increment BOOLEAN
+) RETURNS VOID AS
+$$
+BEGIN
+    IF EXISTS (SELECT *
+               FROM statistics.transaction_statistics
+               WHERE month = _transaction_month
+                 AND year = _transaction_year) THEN
+        IF _is_increment THEN
+            UPDATE statistics.transaction_statistics
+            SET transactions = transactions + 1
+            WHERE month = _transaction_month
+              AND year = _transaction_year;
+        ELSE
+            UPDATE statistics.transaction_statistics
+            SET transactions = transactions - 1
+            WHERE month = _transaction_month
+              AND year = _transaction_year;
+        END IF;
+    ELSE
+        IF _is_increment THEN
+            INSERT INTO statistics.transaction_statistics (month, year, transactions)
+            VALUES (_transaction_month, _transaction_year, 1);
+        END IF;
+    END IF;
+END;
+$$ LANGUAGE plpgsql;
+
 -- Update event statistics on rating insert
 CREATE FUNCTION events.update_event_statistics_on_rating_insert() RETURNS TRIGGER AS
 $$
@@ -586,7 +617,7 @@ CREATE TRIGGER trg_update_user_statistics_on_user_delete
     FOR EACH ROW
 EXECUTE PROCEDURE events.update_user_statistics_on_user_delete();
 
--- Update the total number of transactions on transaction insert
+-- Update transaction statistics on transaction insert
 CREATE FUNCTION events.update_transaction_statistics_on_transaction_insert() RETURNS TRIGGER AS
 $$
 BEGIN
@@ -595,6 +626,12 @@ BEGIN
     WHERE name = 'total_transactions';
 
     PERFORM statistics.update_average_transactions_per_user();
+
+    PERFORM statistics.update_transaction_statistics(
+            EXTRACT(MONTH FROM NEW.date)::integer,
+            EXTRACT(YEAR FROM NEW.date)::integer,
+            TRUE
+            );
 
     RETURN NEW;
 END;
@@ -606,6 +643,34 @@ CREATE TRIGGER trg_update_transaction_statistics_on_transaction_insert
     FOR EACH ROW
 EXECUTE PROCEDURE events.update_transaction_statistics_on_transaction_insert();
 
+-- Update transaction statistics on transaction update
+CREATE FUNCTION events.update_transaction_statistics_on_transaction_update() RETURNS TRIGGER AS
+$$
+BEGIN
+    IF NOT (OLD.date = NEW.date) THEN
+        PERFORM statistics.update_transaction_statistics(
+                EXTRACT(MONTH FROM NEW.date)::integer,
+                EXTRACT(YEAR FROM NEW.date)::integer,
+                TRUE
+                );
+
+        PERFORM statistics.update_transaction_statistics(
+                EXTRACT(MONTH FROM OLD.date)::integer,
+                EXTRACT(YEAR FROM OLD.date)::integer,
+                FALSE
+                );
+    END IF;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_update_transaction_statistics_on_transaction_update
+    AFTER UPDATE
+    ON events.Transaction
+    FOR EACH ROW
+EXECUTE PROCEDURE events.update_transaction_statistics_on_transaction_update();
+
 -- Update transaction statistics on transaction delete
 CREATE FUNCTION events.update_transaction_statistics_on_transaction_delete() RETURNS TRIGGER AS
 $$
@@ -615,6 +680,12 @@ BEGIN
     WHERE name = 'total_transactions';
 
     PERFORM statistics.update_average_transactions_per_user();
+
+    PERFORM statistics.update_transaction_statistics(
+            EXTRACT(MONTH FROM OLD.date)::integer,
+            EXTRACT(YEAR FROM OLD.date)::integer,
+            FALSE
+            );
 
     RETURN NEW;
 END;
