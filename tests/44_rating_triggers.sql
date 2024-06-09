@@ -100,7 +100,6 @@ SELECT throws_ok('update_rating_disabled',
                  'Comments are not enabled for this event',
                  'Update: Comments not enabled for the event');
 
-
 -- Finish the test
 SELECT *
 FROM finish();
