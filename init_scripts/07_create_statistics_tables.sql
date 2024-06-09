@@ -33,15 +33,6 @@ CREATE TABLE statistics.Transaction_Statistics
     PRIMARY KEY (month, year)
 ) TABLESPACE warehouse_tablespace;
 
--- Create event with sale statistics table
-CREATE TABLE statistics.Event_With_Sale_Statistics
-(
-    event_id  INTEGER PRIMARY KEY,
-    price     REAL    NOT NULL,
-    sales     INTEGER NOT NULL,
-    occupancy REAL    NOT NULL
-) TABLESPACE warehouse_tablespace;
-
 -- Create system counters table
 CREATE TABLE statistics.System_Counters
 (
