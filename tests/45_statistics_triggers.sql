@@ -3,7 +3,7 @@
 SET SEARCH_PATH TO public, events;
 
 BEGIN;
-SELECT plan(150);
+SELECT plan(155);
 
 -- Populate database
 INSERT INTO events.User (name, surname, email, password, roles)
@@ -1187,6 +1187,41 @@ SELECT is((SELECT value::text
            WHERE indicator = 8),
           '100',
           'Must update percentage of full events when transaction quantity is increased');
+
+-- Test case: must update occupation statistics when event with sales changes its quantity
+UPDATE event_with_sales
+SET capacity = 10
+WHERE event_id = (SELECT id::integer FROM events.Event WHERE name = 'TestEvent');
+
+SELECT is((SELECT occupation::text
+           FROM statistics.event_statistics
+           WHERE event_id = (SELECT id::integer FROM events.Event WHERE name = 'TestEvent' LIMIT 1)),
+          '40',
+          'Must update event occupation when event quantity is updated');
+
+SELECT is((SELECT value::text
+           FROM statistics.integer_indicators
+           WHERE indicator = 1),
+          '0',
+          'Must keep full event statistics when event quantity is updated');
+
+SELECT is((SELECT value::text
+           FROM statistics.percentage_indicators
+           WHERE indicator = 6),
+          '40',
+          'Must update total number of occupation percentages when event quantity is updated');
+
+SELECT is((SELECT value::text
+           FROM statistics.percentage_indicators
+           WHERE indicator = 7),
+          '40',
+          'Must update average percentage of occupation when event quantity is updated');
+
+SELECT is((SELECT value::text
+           FROM statistics.percentage_indicators
+           WHERE indicator = 8),
+          '0',
+          'Must update percentage of full events when event quantity is updated');
 
 -- Test case: update variation percentage on date change
 SELECT is((SELECT value::text

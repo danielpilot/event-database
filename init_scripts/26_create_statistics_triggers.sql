@@ -816,3 +816,21 @@ CREATE TRIGGER trg_update_transaction_statistics_on_transaction_delete
     ON events.Transaction
     FOR EACH ROW
 EXECUTE PROCEDURE events.update_transaction_statistics_on_transaction_delete();
+
+-- Update occupation statistics on event with sales update
+CREATE FUNCTION events.update_occupation_statistics_on_event_with_sales_update() RETURNS TRIGGER AS
+$$
+BEGIN
+    IF NEW.capacity IS NOT NULL THEN
+        PERFORM statistics.update_event_with_sales_occupation(NEW.id);
+    END IF;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_update_occupation_statistics_on_event_with_sales_update
+    AFTER UPDATE
+    ON events.event_with_sales
+    FOR EACH ROW
+EXECUTE PROCEDURE events.update_occupation_statistics_on_event_with_sales_update();
