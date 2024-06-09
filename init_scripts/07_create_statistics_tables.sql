@@ -86,6 +86,6 @@ CREATE TABLE statistics.Integer_Indicators
 -- Create percentage indicators table
 CREATE TABLE statistics.Percentage_Indicators
 (
-    indicator SMALLINT PRIMARY KEY CHECK ( indicator in ('1', '2', '3', '4', '5', '6', '7')),
+    indicator SMALLINT PRIMARY KEY CHECK ( indicator in ('1', '2', '3', '4', '5', '6', '7', '8')),
     value     REAL NOT NULL
 ) TABLESPACE warehouse_tablespace;

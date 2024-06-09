@@ -324,13 +324,14 @@ $$ LANGUAGE plpgsql;
 CREATE FUNCTION statistics.update_event_with_sales_occupation(_event_with_sales_id INTEGER) RETURNS VOID AS
 $$
 DECLARE
-    _event_id            INTEGER;
-    _capacity            SMALLINT;
-    _sales               SMALLINT;
-    _occupation          FLOAT;
-    _previous_occupation FLOAT;
-    _full_events_number  INTEGER;
-    _total_payed_events  INTEGER;
+    _event_id                INTEGER;
+    _capacity                SMALLINT;
+    _sales                   SMALLINT;
+    _occupation              FLOAT;
+    _previous_occupation     FLOAT;
+    _full_events_number      INTEGER;
+    _total_payed_events      INTEGER;
+    _total_events_occupation FLOAT;
 BEGIN
     SELECT event_id, capacity, sales
     INTO _event_id, _capacity, _sales
@@ -348,6 +349,10 @@ BEGIN
     IF NOT FOUND THEN
         INSERT INTO statistics.event_statistics (event_id, occupation)
         VALUES (_event_id, _occupation);
+    ELSE
+        UPDATE statistics.event_statistics
+        SET occupation = _occupation
+        WHERE event_id = _event_id;
     END IF;
 
     IF _occupation = 100 AND NOT _previous_occupation = 100 THEN
@@ -372,12 +377,18 @@ BEGIN
         WHERE indicator = 6;
     END IF;
 
-    SELECT value INTO _full_events_number FROM statistics.integer_indicators WHERE indicator = 1;
     SELECT value INTO _total_payed_events FROM statistics.system_counters WHERE name = 'total_payed_events';
+    SELECT value INTO _total_events_occupation FROM statistics.percentage_indicators WHERE indicator = 6;
+
+    UPDATE statistics.percentage_indicators
+    SET VALUE = ROUND((_total_events_occupation::real / _total_payed_events::real)::numeric, 2)
+    WHERE indicator = 7;
+
+    SELECT value INTO _full_events_number FROM statistics.integer_indicators WHERE indicator = 1;
 
     UPDATE statistics.percentage_indicators
     SET value = ROUND(((_full_events_number::real / _total_payed_events::real) * 100)::numeric, 2)
-    WHERE indicator = 7;
+    WHERE indicator = 8;
 END;
 $$ LANGUAGE plpgsql;
 

@@ -3,7 +3,7 @@
 SET SEARCH_PATH TO public, events;
 
 BEGIN;
-SELECT plan(125);
+SELECT plan(150);
 
 -- Populate database
 INSERT INTO events.User (name, surname, email, password, roles)
@@ -540,7 +540,7 @@ SELECT is((SELECT value::text
 
 -- Test case: must increase statistics when cancelled event gets programmed
 UPDATE events.Event
-SET event_status = true,
+SET event_status    = true,
     event_has_sales = true
 WHERE name = 'TestEvent3';
 
@@ -975,7 +975,7 @@ VALUES ('TestEvent',
         (SELECT id FROM events.Location WHERE name = 'TestLocation'));
 INSERT INTO event_with_sales (event_id, capacity, maximum_per_sale)
 VALUES ((SELECT id FROM events.Event WHERE name = 'TestEvent'),
-        100,
+        4,
         10);
 
 INSERT INTO events.transaction (event_id, user_id, unit_price, quantity, reference)
@@ -993,6 +993,37 @@ SELECT is((SELECT value::text
            WHERE indicator = 2),
           '0.33',
           'Must update average transactions per user when transaction is created');
+
+-- Test case: update occupation statistics when transaction is created
+SELECT is((SELECT occupation::text
+           FROM statistics.event_statistics
+           WHERE event_id = (SELECT id::integer FROM events.Event WHERE name = 'TestEvent' LIMIT 1)),
+          '50',
+          'Must update event occupation when transaction is created');
+
+SELECT is((SELECT value::text
+           FROM statistics.integer_indicators
+           WHERE indicator = 1),
+          '0',
+          'Must update full event statistics when transaction is crated and event is not full');
+
+SELECT is((SELECT value::text
+           FROM statistics.percentage_indicators
+           WHERE indicator = 6),
+          '50',
+          'Must update total number of occupation percentages when transaction is created');
+
+SELECT is((SELECT value::text
+           FROM statistics.percentage_indicators
+           WHERE indicator = 7),
+          '50',
+          'Must update average percentage of occupation when transaction is created');
+
+SELECT is((SELECT value::text
+           FROM statistics.percentage_indicators
+           WHERE indicator = 8),
+          '0',
+          'Must update percentage of full events when transaction is crated and event is not full');
 
 -- Test case: update current month transactions when transaction is created
 SELECT is((SELECT transactions::text
@@ -1037,6 +1068,36 @@ SELECT is((SELECT transactions::text
           '2',
           'Must update current month transactions when transaction is created');
 
+SELECT is((SELECT occupation::text
+           FROM statistics.event_statistics
+           WHERE event_id = (SELECT id::integer FROM events.Event WHERE name = 'TestEvent' LIMIT 1)),
+          '100',
+          'Must update event occupation when transaction is created');
+
+SELECT is((SELECT value::text
+           FROM statistics.integer_indicators
+           WHERE indicator = 1),
+          '1',
+          'Must keep full event statistics when transaction is crated and event is full');
+
+SELECT is((SELECT value::text
+           FROM statistics.percentage_indicators
+           WHERE indicator = 6),
+          '100',
+          'Must update total number of occupation percentages when transaction is created and event is full');
+
+SELECT is((SELECT value::text
+           FROM statistics.percentage_indicators
+           WHERE indicator = 7),
+          '100',
+          'Must update average percentage of occupation when transaction is created and event is full');
+
+SELECT is((SELECT value::text
+           FROM statistics.percentage_indicators
+           WHERE indicator = 8),
+          '100',
+          'Must update percentage of full events when transaction is crated and event is full');
+
 -- Test case: must update transaction statistics on date change
 UPDATE events.transaction
 SET date = NOW() - INTERVAL '1 month'
@@ -1055,6 +1116,77 @@ SELECT is((SELECT transactions::text
              AND year = EXTRACT(YEAR FROM NOW() - INTERVAL '1 month')),
           '1',
           'Must update new month transactions when transaction month is moved');
+
+
+-- Test case: must update occupation statistics when transaction decreases its quantity
+UPDATE events.transaction
+SET quantity = 1
+WHERE reference = 'ref2';
+
+SELECT is((SELECT occupation::text
+           FROM statistics.event_statistics
+           WHERE event_id = (SELECT id::integer FROM events.Event WHERE name = 'TestEvent' LIMIT 1)),
+          '75',
+          'Must update event occupation when transaction quantity is decreased');
+
+SELECT is((SELECT value::text
+           FROM statistics.integer_indicators
+           WHERE indicator = 1),
+          '0',
+          'Must decrease event statistics when transaction quantity is decreased');
+
+SELECT is((SELECT value::text
+           FROM statistics.percentage_indicators
+           WHERE indicator = 6),
+          '75',
+          'Must update total number of occupation percentages when transaction quantity is decreased');
+
+SELECT is((SELECT value::text
+           FROM statistics.percentage_indicators
+           WHERE indicator = 7),
+          '75',
+          'Must update average percentage of occupation when transaction quantity is decreased');
+
+SELECT is((SELECT value::text
+           FROM statistics.percentage_indicators
+           WHERE indicator = 8),
+          '0',
+          'Must update percentage of full events when transaction quantity is decreased');
+
+-- Test case: must update occupation statistics when transaction increases its quantity
+UPDATE events.transaction
+SET quantity = 2
+WHERE reference = 'ref2';
+
+SELECT is((SELECT occupation::text
+           FROM statistics.event_statistics
+           WHERE event_id = (SELECT id::integer FROM events.Event WHERE name = 'TestEvent' LIMIT 1)),
+          '100',
+          'Must update event occupation when transaction quantity is increased');
+
+SELECT is((SELECT value::text
+           FROM statistics.integer_indicators
+           WHERE indicator = 1),
+          '1',
+          'Must keep full event statistics when transaction quantity is increased');
+
+SELECT is((SELECT value::text
+           FROM statistics.percentage_indicators
+           WHERE indicator = 6),
+          '100',
+          'Must update total number of occupation percentages when transaction quantity is increased');
+
+SELECT is((SELECT value::text
+           FROM statistics.percentage_indicators
+           WHERE indicator = 7),
+          '100',
+          'Must update average percentage of occupation when transaction quantity is increased');
+
+SELECT is((SELECT value::text
+           FROM statistics.percentage_indicators
+           WHERE indicator = 8),
+          '100',
+          'Must update percentage of full events when transaction quantity is increased');
 
 -- Test case: update variation percentage on date change
 SELECT is((SELECT value::text
@@ -1184,6 +1316,37 @@ SELECT is((SELECT transactions::text
              AND year = EXTRACT(YEAR FROM CURRENT_DATE)),
           '0',
           'Must update current month transactions when transaction is deleted');
+
+-- Test case: must update occupation statistics when transaction is deleted
+SELECT is((SELECT occupation::text
+           FROM statistics.event_statistics
+           WHERE event_id = (SELECT id::integer FROM events.Event WHERE name = 'TestEvent' LIMIT 1)),
+          '0',
+          'Must update event occupation when transaction is deleted');
+
+SELECT is((SELECT value::text
+           FROM statistics.integer_indicators
+           WHERE indicator = 1),
+          '0',
+          'Must keep full event statistics when transaction is deleted');
+
+SELECT is((SELECT value::text
+           FROM statistics.percentage_indicators
+           WHERE indicator = 6),
+          '0',
+          'Must update total number of occupation percentages when transaction is deleted');
+
+SELECT is((SELECT value::text
+           FROM statistics.percentage_indicators
+           WHERE indicator = 7),
+          '0',
+          'Must update average percentage of occupation when transaction is deleted');
+
+SELECT is((SELECT value::text
+           FROM statistics.percentage_indicators
+           WHERE indicator = 8),
+          '0',
+          'Must update percentage of full events when transaction is deleted');
 
 -- Test case: must update average transactions per user when transaction is deleted
 SELECT is((SELECT value::text

@@ -35,3 +35,9 @@ CREATE VIEW statistics.average_occupation AS
 SELECT value
 FROM statistics.percentage_indicators
 WHERE indicator = 7;
+
+-- Create view to show the percentage of full events
+CREATE VIEW statistics.average_occupation AS
+SELECT value
+FROM statistics.percentage_indicators
+WHERE indicator = 8;
