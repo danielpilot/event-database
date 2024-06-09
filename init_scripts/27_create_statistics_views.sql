@@ -29,3 +29,9 @@ CREATE VIEW statistics.transactions_variation AS
 SELECT value
 FROM statistics.percentage_indicators
 WHERE indicator = 5;
+
+-- Create view to show the average percentage of events occupation
+CREATE VIEW statistics.average_occupation AS
+SELECT value
+FROM statistics.percentage_indicators
+WHERE indicator = 7;

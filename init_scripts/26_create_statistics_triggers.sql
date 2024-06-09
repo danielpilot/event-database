@@ -321,6 +321,66 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+CREATE FUNCTION statistics.update_event_with_sales_occupation(_event_with_sales_id INTEGER) RETURNS VOID AS
+$$
+DECLARE
+    _event_id            INTEGER;
+    _capacity            SMALLINT;
+    _sales               SMALLINT;
+    _occupation          FLOAT;
+    _previous_occupation FLOAT;
+    _full_events_number  INTEGER;
+    _total_payed_events  INTEGER;
+BEGIN
+    SELECT event_id, capacity, sales
+    INTO _event_id, _capacity, _sales
+    FROM events.event_with_sales
+    WHERE id = _event_with_sales_id;
+
+    IF _capacity = 0 THEN
+        _occupation = 0;
+    ELSE
+        _occupation = ROUND(((_sales::real / _capacity::real) * 100)::numeric, 2);
+    END IF;
+
+    SELECT occupation INTO _previous_occupation FROM statistics.event_statistics WHERE event_id = _event_id;
+
+    IF NOT FOUND THEN
+        INSERT INTO statistics.event_statistics (event_id, occupation)
+        VALUES (_event_id, _occupation);
+    END IF;
+
+    IF _occupation = 100 AND NOT _previous_occupation = 100 THEN
+        UPDATE statistics.integer_indicators
+        SET value = value + 1
+        WHERE indicator = 1;
+    END IF;
+
+    IF _previous_occupation = 100 AND NOT _occupation = 100 THEN
+        UPDATE statistics.integer_indicators
+        SET value = value - 1
+        WHERE indicator = 1;
+    END IF;
+
+    IF _previous_occupation IS NOT NULL THEN
+        UPDATE statistics.percentage_indicators
+        SET value = value - _previous_occupation + _occupation
+        WHERE indicator = 6;
+    ELSE
+        UPDATE statistics.percentage_indicators
+        SET value = value + _occupation
+        WHERE indicator = 6;
+    END IF;
+
+    SELECT value INTO _full_events_number FROM statistics.integer_indicators WHERE indicator = 1;
+    SELECT value INTO _total_payed_events FROM statistics.system_counters WHERE name = 'total_payed_events';
+
+    UPDATE statistics.percentage_indicators
+    SET value = ROUND(((_full_events_number::real / _total_payed_events::real) * 100)::numeric, 2)
+    WHERE indicator = 7;
+END;
+$$ LANGUAGE plpgsql;
+
 -- Update event statistics on rating insert
 CREATE FUNCTION events.update_event_statistics_on_rating_insert() RETURNS TRIGGER AS
 $$
@@ -673,6 +733,8 @@ BEGIN
             );
     PERFORM statistics.update_transaction_variation_last_month();
 
+    PERFORM statistics.update_event_with_sales_occupation(NEW.event_id);
+
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
@@ -703,6 +765,8 @@ BEGIN
         PERFORM statistics.update_transaction_variation_last_month();
     END IF;
 
+    PERFORM statistics.update_event_with_sales_occupation(NEW.event_id);
+
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
@@ -729,6 +793,8 @@ BEGIN
             FALSE
             );
     PERFORM statistics.update_transaction_variation_last_month();
+
+    PERFORM statistics.update_event_with_sales_occupation(OLD.event_id);
 
     RETURN NEW;
 END;
