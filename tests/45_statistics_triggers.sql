@@ -3,7 +3,7 @@
 SET SEARCH_PATH TO public, events;
 
 BEGIN;
-SELECT plan(122);
+SELECT plan(125);
 
 -- Populate database
 INSERT INTO events.User (name, surname, email, password, roles)
@@ -1002,6 +1002,13 @@ SELECT is((SELECT transactions::text
           '1',
           'Must update current month transactions when first transaction is created');
 
+-- Test case: update variation percentage when transaction is created
+SELECT is((SELECT value::text
+           FROM statistics.percentage_indicators
+           WHERE indicator = 5),
+          '100',
+          'Must update current month transactions when first transaction is created');
+
 -- Test case: must update average transactions per user when non admin user is created
 INSERT INTO events.User (name, surname, email, password, roles)
 VALUES ('test4', 'test4', 'test4@test.com', 'password4', 'user');
@@ -1030,7 +1037,6 @@ SELECT is((SELECT transactions::text
           '2',
           'Must update current month transactions when transaction is created');
 
-
 -- Test case: must update transaction statistics on date change
 UPDATE events.transaction
 SET date = NOW() - INTERVAL '1 month'
@@ -1049,6 +1055,13 @@ SELECT is((SELECT transactions::text
              AND year = EXTRACT(YEAR FROM NOW() - INTERVAL '1 month')),
           '1',
           'Must update new month transactions when transaction month is moved');
+
+-- Test case: update variation percentage on date change
+SELECT is((SELECT value::text
+           FROM statistics.percentage_indicators
+           WHERE indicator = 5),
+          '0',
+          'Must update current month transactions when transaction month is moved');
 
 DELETE
 FROM events.transaction
@@ -1178,6 +1191,13 @@ SELECT is((SELECT value::text
            WHERE indicator = 2),
           '0',
           'Must update average transactions per user when transaction is deleted');
+
+-- Test case: update variation percentage on date change
+SELECT is((SELECT value::text
+           FROM statistics.percentage_indicators
+           WHERE indicator = 5),
+          '100',
+          'Must update current month transactions when transaction month is deleted');
 
 -- Finish the test
 SELECT *

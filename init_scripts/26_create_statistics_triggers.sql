@@ -282,6 +282,45 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+CREATE FUNCTION statistics.update_transaction_variation_last_month() RETURNS VOID AS
+$$
+DECLARE
+    _last_month_transactions    INTEGER;
+    _current_month_transactions INTEGER;
+    _variation                  FLOAT;
+BEGIN
+    SELECT transactions
+    INTO _current_month_transactions
+    FROM statistics.transaction_statistics
+    WHERE month = EXTRACT(MONTH FROM CURRENT_DATE)
+      AND year = EXTRACT(YEAR FROM CURRENT_DATE);
+
+    IF NOT FOUND THEN
+        _current_month_transactions := 0;
+    END IF;
+
+    SELECT transactions
+    INTO _last_month_transactions
+    FROM statistics.transaction_statistics
+    WHERE month = EXTRACT(MONTH FROM NOW() - INTERVAL '1 month')
+      AND year = EXTRACT(YEAR FROM NOW() - INTERVAL '1 month');
+
+    IF NOT FOUND THEN
+        _last_month_transactions := 0;
+    END IF;
+
+    IF _last_month_transactions = 0 THEN
+        _variation := 100;
+    ELSE
+        _variation := ((_current_month_transactions - _last_month_transactions) / _last_month_transactions) * 100;
+    END IF;
+
+    UPDATE statistics.percentage_indicators
+    SET value = _variation
+    WHERE indicator = 5;
+END;
+$$ LANGUAGE plpgsql;
+
 -- Update event statistics on rating insert
 CREATE FUNCTION events.update_event_statistics_on_rating_insert() RETURNS TRIGGER AS
 $$
@@ -632,6 +671,7 @@ BEGIN
             EXTRACT(YEAR FROM NEW.date)::integer,
             TRUE
             );
+    PERFORM statistics.update_transaction_variation_last_month();
 
     RETURN NEW;
 END;
@@ -659,6 +699,8 @@ BEGIN
                 EXTRACT(YEAR FROM OLD.date)::integer,
                 FALSE
                 );
+
+        PERFORM statistics.update_transaction_variation_last_month();
     END IF;
 
     RETURN NEW;
@@ -686,6 +728,7 @@ BEGIN
             EXTRACT(YEAR FROM OLD.date)::integer,
             FALSE
             );
+    PERFORM statistics.update_transaction_variation_last_month();
 
     RETURN NEW;
 END;

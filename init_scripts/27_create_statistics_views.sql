@@ -23,3 +23,9 @@ CREATE VIEW statistics.payed_events_percentage AS
 SELECT value
 FROM statistics.percentage_indicators
 WHERE indicator = 3;
+
+-- Create view to show the percentage variation of transactions from last month to the current month
+CREATE VIEW statistics.transactions_variation AS
+SELECT value
+FROM statistics.percentage_indicators
+WHERE indicator = 5;
