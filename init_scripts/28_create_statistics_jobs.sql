@@ -85,3 +85,11 @@ BEGIN
     LIMIT 20;
 END;
 $$ LANGUAGE plpgsql;
+
+-- Create statistics update jobs
+SELECT cron.schedule('0 0 * * *', $$CALL statistics.update_top_commented_events()$$);
+SELECT cron.schedule('0 1 * * *', $$CALL statistics.update_top_valued_events()$$);
+SELECT cron.schedule('0 2 * * *', $$CALL statistics.update_top_sold_events()$$);
+SELECT cron.schedule('0 3 * * *', $$CALL statistics.update_top_locations_with_events()$$);
+SELECT cron.schedule('0 4 * * *', $$CALL statistics.update_top_cities_with_events()$$);
+SELECT cron.schedule('0 5 * * *', $$CALL statistics.update_top_favorite_events()$$);
