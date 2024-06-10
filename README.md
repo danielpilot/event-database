@@ -10,6 +10,7 @@ This database is designed to be used by applications that track event and locati
 * **Database management system**: PostgreSQL 14. 
 * **Programming languages**: SQL, PL/pgSQL
 * **Database testing**: pgTAP
+* **Database job scheduler**: pg_cron
 * **Containerization**: Docker
 
 ## Execution
