@@ -68,7 +68,7 @@ BEGIN
     JOIN events.location l ON ls.location_id = l.id
     JOIN events.city c ON l.city_id = c.id
     ORDER BY ls.events DESC
-    LIMIT 20;
+    LIMIT 10;
 END;
 $$ LANGUAGE plpgsql;
 
