@@ -69,6 +69,13 @@ CREATE TABLE statistics.Top_Event_Locations
     name     VARCHAR(255) NOT NULL
 ) TABLESPACE warehouse_tablespace;
 
+-- Create top event cities table
+CREATE TABLE statistics.Top_Event_Cities
+(
+    event_id INTEGER PRIMARY KEY,
+    name     VARCHAR(255) NOT NULL
+) TABLESPACE warehouse_tablespace;
+
 -- Create top favorite events table
 CREATE TABLE statistics.Top_Favorite_Events
 (
