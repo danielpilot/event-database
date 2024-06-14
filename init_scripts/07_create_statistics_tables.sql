@@ -22,7 +22,7 @@ CREATE TABLE statistics.Event_Statistics
     average_rating REAL    NOT NULL DEFAULT 0.0,
     total_rating   INTEGER NOT NULL DEFAULT 0,
     favorites      INTEGER NOT NULL DEFAULT 0,
-    occupation     FLOAT DEFAULT NULL
+    occupation     FLOAT            DEFAULT NULL
 ) TABLESPACE warehouse_tablespace;
 
 -- Create transaction statistics table
@@ -65,15 +65,15 @@ CREATE TABLE statistics.Top_Sold_Events
 -- Create top event locations table
 CREATE TABLE statistics.Top_Event_Locations
 (
-    event_id INTEGER PRIMARY KEY,
-    name     VARCHAR(255) NOT NULL
+    location_id INTEGER PRIMARY KEY,
+    name        VARCHAR(255) NOT NULL
 ) TABLESPACE warehouse_tablespace;
 
 -- Create top event cities table
 CREATE TABLE statistics.Top_Event_Cities
 (
-    event_id INTEGER PRIMARY KEY,
-    name     VARCHAR(255) NOT NULL
+    city_id INTEGER PRIMARY KEY,
+    name    VARCHAR(255) NOT NULL
 ) TABLESPACE warehouse_tablespace;
 
 -- Create top favorite events table
