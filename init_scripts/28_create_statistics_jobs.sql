@@ -93,3 +93,4 @@ SELECT cron.schedule('0 2 * * *', $$CALL statistics.update_top_sold_events()$$);
 SELECT cron.schedule('0 3 * * *', $$CALL statistics.update_top_locations_with_events()$$);
 SELECT cron.schedule('0 4 * * *', $$CALL statistics.update_top_cities_with_events()$$);
 SELECT cron.schedule('0 5 * * *', $$CALL statistics.update_top_favorite_events()$$);
+SELECT cron.schedule('0 6 * * *', $$CALL statistics.update_transaction_variation_last_month()$$);
