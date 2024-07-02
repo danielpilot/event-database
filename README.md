@@ -1,6 +1,8 @@
 # Event Database
 This project is developed as a Bachelor's Thesis for the Computer Engineering degree at the [Universitat Oberta de Catalunya](https://www.uoc.edu/).
 
+The complete paper can be found in the [Intitutional repository of the UOC](http://hdl.handle.net/10609/150527).
+
 ## Project description
 The purpose of the project is to create a database that stores events information.
 
